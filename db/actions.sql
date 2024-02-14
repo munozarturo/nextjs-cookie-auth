@@ -2,7 +2,6 @@ CREATE OR REPLACE FUNCTION create_user(
     _username TEXT,
     _email TEXT,
     _password TEXT,
-    _salt TEXT
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -10,14 +9,15 @@ AS $$
 DECLARE
     new_user_id UUID;
 BEGIN
-    INSERT INTO users (username, email, salt, password)
-    VALUES (_username, _email, _salt, _password)
+    INSERT INTO users (username, email, password)
+    VALUES (_username, _email, _password)
     RETURNING userId INTO new_user_id;
     
     RETURN new_user_id;
 END;
 $$;
 
+-- returns list fix
 CREATE OR REPLACE FUNCTION find_user_by_id(_userid UUID)
 RETURNS TABLE(userid UUID, username TEXT, email TEXT, verified BOOLEAN)
 LANGUAGE plpgsql
@@ -60,7 +60,6 @@ $$;
 
 CREATE OR REPLACE FUNCTION create_auth_challenge(
     _userid UUID,
-    _salt TEXT,
     _expected TEXT
 )
 RETURNS UUID
@@ -69,50 +68,44 @@ AS $$
 DECLARE
     _challengeId UUID;
 BEGIN
-    INSERT INTO auth_challenges (userId, salt, expected)
-    VALUES (_userid, _salt, _expected)
+    INSERT INTO auth_challenges (userId, expected)
+    VALUES (_userid, _expected)
     RETURNING challengeId INTO _challengeId;
     
     RETURN _challengeId;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION get_auth_challenge(_challengeid UUID)
+CREATE OR REPLACE FUNCTION fetch_auth_challenge_by_id(_challengeid UUID)
 RETURNS TABLE(
     challengeId UUID,
     userId UUID,
     expected TEXT,
     passed BOOLEAN,
-    created_at TIMESTAMP WITHOUT TIME ZONE
+    created_at TIMESTAMP WITH TIME ZONE
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT challengeId, userId, expected, passed, created_at
-    FROM auth_challenges
-    WHERE challengeId = _challengeid;
+    SELECT ac.challengeId, ac.userId, ac.expected, ac.passed, ac.created_at
+    FROM auth_challenges AS ac
+    WHERE ac.challengeId = _challengeid;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION pass_auth_challenge(_challengeid UUID, _expected TEXT)
+CREATE OR REPLACE FUNCTION pass_auth_challenge(_challengeid UUID)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Check if the challengeId exists and the expected value matches
+    -- Check if the challengeId exists
     IF NOT EXISTS (
         SELECT 1
         FROM auth_challenges
         WHERE challengeId = _challengeid
     ) THEN
         RAISE EXCEPTION 'Challenge ID does not exist.';
-    ELSIF NOT EXISTS (
-        SELECT 1
-        FROM auth_challenges
-        WHERE challengeId = _challengeid AND expected = _expected
-    ) THEN
-        RAISE EXCEPTION 'Expected value does not match.';
     ELSE
         -- Update the auth_challenges table to set passed = TRUE for the challenge
         UPDATE auth_challenges
@@ -128,3 +121,4 @@ BEGIN
     END IF;
 END;
 $$;
+
