@@ -12,6 +12,25 @@ interface Email {
 async function sendEmail(email: Email) {
     const sesClient = createSESClient();
 
+    let Body: {
+        Text?: { Data: string; Charset: string };
+        Html?: { Data: string; Charset: string };
+    } = {};
+
+    if (email.textBody) {
+        Body.Text = {
+            Data: email.textBody,
+            Charset: "UTF-8",
+        };
+    }
+
+    if (email.htmlBody) {
+        Body.Html = {
+            Data: email.htmlBody,
+            Charset: "UTF-8",
+        };
+    }
+
     const sendEmailCommand = new SendEmailCommand({
         Destination: {
             ToAddresses:
@@ -20,16 +39,7 @@ async function sendEmail(email: Email) {
                     : email.recipient,
         },
         Message: {
-            Body: {
-                Text: {
-                    Data: email.textBody,
-                    Charset: "UTF-8",
-                },
-                Html: {
-                    Data: email.htmlBody,
-                    Charset: "UTF-8",
-                },
-            },
+            Body: Body,
             Subject: {
                 Data: email.subject,
                 Charset: "UTF-8",
@@ -41,10 +51,11 @@ async function sendEmail(email: Email) {
     sesClient
         .send(sendEmailCommand)
         .then((data) => {
-            // success
+            // on success
         })
         .catch((error) => {
-            // error
+            console.log(error);
+            throw new Error("Failed to send email.");
         });
 }
 
