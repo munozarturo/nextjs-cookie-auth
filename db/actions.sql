@@ -57,3 +57,73 @@ BEGIN
     );
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION create_auth_challenge(
+    _userId UUID,
+    _expected TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _challengeId UUID;
+BEGIN
+    INSERT INTO auth_challenges (userId, expected)
+    VALUES (_userId, _expected)
+    RETURNING challengeId INTO _challengeId;
+    
+    RETURN _challengeId;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_auth_challenge(_challengeId UUID)
+RETURNS TABLE(
+    challengeId UUID,
+    userId UUID,
+    expected TEXT,
+    passed BOOLEAN,
+    created_at TIMESTAMP WITHOUT TIME ZONE
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT challengeId, userId, expected, passed, created_at
+    FROM auth_challenges
+    WHERE challengeId = _challengeId;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION pass_auth_challenge(_challengeId UUID, _expected TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Check if the challengeId exists and the expected value matches
+    IF NOT EXISTS (
+        SELECT 1
+        FROM auth_challenges
+        WHERE challengeId = _challengeId
+    ) THEN
+        RAISE EXCEPTION 'Challenge ID does not exist.';
+    ELSIF NOT EXISTS (
+        SELECT 1
+        FROM auth_challenges
+        WHERE challengeId = _challengeId AND expected = _expected
+    ) THEN
+        RAISE EXCEPTION 'Expected value does not match.';
+    ELSE
+        -- Update the auth_challenges table to set passed = TRUE for the challenge
+        UPDATE auth_challenges
+        SET passed = TRUE
+        WHERE challengeId = _challengeId;
+
+        -- Then, update the users table to set verified = TRUE for the associated userId
+        UPDATE users
+        SET verified = TRUE
+        WHERE userId = (
+            SELECT userId FROM auth_challenges WHERE challengeId = _challengeId
+        );
+    END IF;
+END;
+$$;
