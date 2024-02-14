@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION create_user(
     _username TEXT,
     _email TEXT,
-    _password TEXT,
+    _password TEXT
 )
 RETURNS UUID
 LANGUAGE plpgsql
