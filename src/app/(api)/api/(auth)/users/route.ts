@@ -67,7 +67,7 @@ async function POST(req: NextRequest) {
                 status: "error",
                 message: "Unknown error verifying request contents.",
             },
-            { status: 400 }
+            { status: 500 }
         );
     }
 
@@ -75,63 +75,69 @@ async function POST(req: NextRequest) {
     try {
         dbClient = createDbClient();
     } catch (e: any) {
-        return NextResponse.json({});
+        return NextResponse.json(
+            {
+                status: "error",
+                message: "Unknown error connecting to database.",
+            },
+            { status: 500 }
+        );
     }
 
-    // const res: usersPOSTRes = {};
-    // // Check if user with username or email exists.
-    // if (
-    //     (
-    //         await dbClient.rpc("check_user_exists_by_username", {
-    //             _username: input.username,
-    //         })
-    //     ).data
-    // ) {
-    //     return NextResponse.json(
-    //         {
-    //             status: "error",
-    //             message: "Username taken.",
-    //         },
-    //         { status: 400 }
-    //     );
-    // }
+    const res: usersPOSTRes = {};
+    // Check if user with username or email exists.
+    if (
+        (
+            await dbClient.rpc("check_user_exists_by_username", {
+                _username: input.username,
+            })
+        ).data
+    ) {
+        return NextResponse.json(
+            {
+                status: "error",
+                message: "Username taken.",
+            },
+            { status: 400 }
+        );
+    }
 
-    // if (
-    //     (
-    //         await dbClient.rpc("check_user_exists_by_email", {
-    //             _email: input.credentials.email,
-    //         })
-    //     ).data
-    // ) {
-    //     return NextResponse.json(
-    //         {
-    //             status: "error",
-    //             message: "Email already in use.",
-    //         },
-    //         { status: 400 }
-    //     );
-    // }
+    if (
+        (
+            await dbClient.rpc("check_user_exists_by_email", {
+                _email: input.credentials.email,
+            })
+        ).data
+    ) {
+        return NextResponse.json(
+            {
+                status: "error",
+                message: "Email already in use.",
+            },
+            { status: 400 }
+        );
+    }
 
-    // // Create user
-    // const authChallenge = await createAuthChallenge(
-    //     input.credentials.email,
-    //     input.credentials.password
-    // );
+    // Create user
+    const authChallenge = await createAuthChallenge(
+        input.credentials.email,
+        input.credentials.password
+    );
 
-    // const createUserRes = await dbClient.rpc("create_user", {
-    //     _username: input.username,
-    //     _email: input.credentials.email,
-    //     _password: authChallenge.hash,
-    //     _salt: authChallenge.salt,
-    // });
+    const createUserRes = await dbClient.rpc("create_user", {
+        _username: input.username,
+        _email: input.credentials.email,
+        _password: authChallenge.hash,
+        _salt: authChallenge.salt,
+    });
 
     // Fetch user and return
-    // const fetchUserRes = await dbClient.rpc("get_user_by_id", {
-    //     _userId: "8441de4d-a157-44b4-b34b-9ea3d957639d",
-    // });
+    const fetchUserRes = await dbClient.rpc("find_user_by_id", {
+        _userid: createUserRes.data,
+    });
 
     return NextResponse.json({
-        user: dbClient.functions,
+        user: fetchUserRes.data,
     });
 }
 

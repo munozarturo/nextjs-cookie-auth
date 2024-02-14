@@ -18,8 +18,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION get_user_by_id(_userId UUID)
-RETURNS TABLE(userId UUID, username TEXT, email TEXT, verified BOOLEAN)
+CREATE OR REPLACE FUNCTION find_user_by_id(_userId UUID)
+RETURNS TABLE(userid UUID, username TEXT, email TEXT, verified BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -27,18 +27,6 @@ BEGIN
     SELECT u.userId, u.username, u.email, u.verified
     FROM users AS u
     WHERE u.userId = _userId;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION get_user_by_id(_userId text)
-RETURNS TABLE(userId UUID, username TEXT, email TEXT, verified BOOLEAN)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT userId, username, email, verified
-    FROM users
-    WHERE userId = _userId::UUID; -- Explicit cast to UUID
 END;
 $$;
 
