@@ -3,8 +3,12 @@
 ## .env
 
 ```.env
-NEXT_PUBLIC_SUPABASE_URL="" # supabase project url
-NEXT_PUBLIC_SUPABASE_ANON_KEY="" # supabase project anon key
+# authentication
+NEXT_PUBLIC_AUTH_SECRET="auth secret"
+
+# supabase db
+NEXT_PUBLIC_SUPABASE_URL="supabase url"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="supabase anon key"
 ```
 
 ## Database
