@@ -3,11 +3,10 @@ import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
 
 import { createVerifChallenge } from "@/app/lib/api/auth/utils";
-import { genSalt } from "bcryptjs";
 import { sendEmail } from "@/app/lib/api/send-email";
 
 const verificationPOSTReq = z.object({
-    userId: z.string().uuid({ message: "Invalid UUID format." }),
+    userId: z.string(),
 });
 
 export async function POST(req: NextRequest) {
@@ -60,22 +59,21 @@ export async function POST(req: NextRequest) {
     const getUserRes = await dbClient.rpc("find_user_by_id", {
         _userid: input.userId,
     });
-    const user = getUserRes.data;
+    const user = getUserRes.data[0];
 
     const verifCode = Math.floor(Math.random() * 1000000).toString();
     const verifChallenge = await createVerifChallenge(verifCode);
 
     const createAuthChallengeRes = await dbClient.rpc("create_auth_challenge", {
         _userid: input.userId,
-        _salt: verifChallenge.salt,
-        _expected: verifChallenge.hash,
+        _expected: verifChallenge,
     });
 
     sendEmail({
         sender: `munoz.arturoroman@gmail.com`,
         recipient: user.email,
         subject: "Verify your email",
-        textBody: `Your code is ${verifCode}.`,
+        textBody: `Your code is ${verifCode}. `,
     });
 
     return NextResponse.json({

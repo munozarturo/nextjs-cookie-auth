@@ -122,8 +122,7 @@ async function POST(req: NextRequest) {
     const createUserRes = await dbClient.rpc("create_user", {
         _username: input.username,
         _email: input.credentials.email,
-        _password: authChallenge.hash,
-        _salt: authChallenge.salt,
+        _password: authChallenge,
     });
 
     // Fetch user and return
