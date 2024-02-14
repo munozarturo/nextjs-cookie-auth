@@ -12,6 +12,7 @@ CREATE TABLE users (
 CREATE TABLE auth_challenges (
     challengeId UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     userId UUID NOT NULL,
+    salt TEXT NOT NULL,
     expected TEXT NOT NULL,
     passed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

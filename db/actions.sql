@@ -18,7 +18,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION find_user_by_id(_userId UUID)
+CREATE OR REPLACE FUNCTION find_user_by_id(_userid UUID)
 RETURNS TABLE(userid UUID, username TEXT, email TEXT, verified BOOLEAN)
 LANGUAGE plpgsql
 AS $$
@@ -26,7 +26,7 @@ BEGIN
     RETURN QUERY
     SELECT u.userId, u.username, u.email, u.verified
     FROM users AS u
-    WHERE u.userId = _userId;
+    WHERE u.userId = _userid;
 END;
 $$;
 
@@ -59,7 +59,8 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION create_auth_challenge(
-    _userId UUID,
+    _userid UUID,
+    _salt TEXT,
     _expected TEXT
 )
 RETURNS UUID
@@ -68,15 +69,15 @@ AS $$
 DECLARE
     _challengeId UUID;
 BEGIN
-    INSERT INTO auth_challenges (userId, expected)
-    VALUES (_userId, _expected)
+    INSERT INTO auth_challenges (userId, salt, expected)
+    VALUES (_userid, _salt, _expected)
     RETURNING challengeId INTO _challengeId;
     
     RETURN _challengeId;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION get_auth_challenge(_challengeId UUID)
+CREATE OR REPLACE FUNCTION get_auth_challenge(_challengeid UUID)
 RETURNS TABLE(
     challengeId UUID,
     userId UUID,
@@ -90,11 +91,11 @@ BEGIN
     RETURN QUERY
     SELECT challengeId, userId, expected, passed, created_at
     FROM auth_challenges
-    WHERE challengeId = _challengeId;
+    WHERE challengeId = _challengeid;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION pass_auth_challenge(_challengeId UUID, _expected TEXT)
+CREATE OR REPLACE FUNCTION pass_auth_challenge(_challengeid UUID, _expected TEXT)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
@@ -103,26 +104,26 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1
         FROM auth_challenges
-        WHERE challengeId = _challengeId
+        WHERE challengeId = _challengeid
     ) THEN
         RAISE EXCEPTION 'Challenge ID does not exist.';
     ELSIF NOT EXISTS (
         SELECT 1
         FROM auth_challenges
-        WHERE challengeId = _challengeId AND expected = _expected
+        WHERE challengeId = _challengeid AND expected = _expected
     ) THEN
         RAISE EXCEPTION 'Expected value does not match.';
     ELSE
         -- Update the auth_challenges table to set passed = TRUE for the challenge
         UPDATE auth_challenges
         SET passed = TRUE
-        WHERE challengeId = _challengeId;
+        WHERE challengeId = _challengeid;
 
         -- Then, update the users table to set verified = TRUE for the associated userId
         UPDATE users
         SET verified = TRUE
         WHERE userId = (
-            SELECT userId FROM auth_challenges WHERE challengeId = _challengeId
+            SELECT userId FROM auth_challenges WHERE challengeId = _challengeid
         );
     END IF;
 END;

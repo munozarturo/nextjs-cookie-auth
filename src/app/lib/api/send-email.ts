@@ -5,8 +5,8 @@ interface Email {
     sender: string;
     recipient: string | string[];
     subject: string;
-    textBody: string;
-    htmlBody: string;
+    textBody?: string;
+    htmlBody?: string;
 }
 
 async function sendEmail(email: Email) {
