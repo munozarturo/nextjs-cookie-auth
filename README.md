@@ -9,6 +9,11 @@ NEXT_PUBLIC_AUTH_SECRET="auth secret"
 # supabase db
 NEXT_PUBLIC_SUPABASE_URL="supabase url"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="supabase anon key"
+
+# amazon aws user
+AWS_REGION=""
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
 ```
 
 ## Database

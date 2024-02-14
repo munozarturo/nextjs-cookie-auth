@@ -33,10 +33,6 @@ const usersPOSTReq = z.object({
     }),
 });
 
-interface usersPOSTRes {
-    userId?: string;
-}
-
 async function POST(req: NextRequest) {
     let body: Object;
     try {
@@ -84,7 +80,6 @@ async function POST(req: NextRequest) {
         );
     }
 
-    const res: usersPOSTRes = {};
     // Check if user with username or email exists.
     if (
         (
