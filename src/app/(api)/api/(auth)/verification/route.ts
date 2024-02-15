@@ -4,7 +4,7 @@ import { ZodError, z } from "zod";
 
 import { createVerifChallenge } from "@/app/lib/api/auth/utils";
 import { renderVerificationCodeEmail } from "@/app/components/emails/verification-code";
-import { sendEmail } from "@/app/lib/api/send-email";
+import { sendEmail } from "@/app/lib/api/email/send-email";
 
 const verificationPOSTReq = z.object({
     userId: z.string(),
