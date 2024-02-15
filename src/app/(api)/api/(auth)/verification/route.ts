@@ -3,6 +3,7 @@ import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
 
 import { createVerifChallenge } from "@/app/lib/api/auth/utils";
+import { renderVerificationCodeEmail } from "@/app/components/emails/verification-code";
 import { sendEmail } from "@/app/lib/api/send-email";
 
 const verificationPOSTReq = z.object({
@@ -61,7 +62,9 @@ export async function POST(req: NextRequest) {
     });
     const user = getUserRes.data[0];
 
-    const verifCode = Math.floor(Math.random() * 1000000).toString();
+    const verifCode = Math.floor(Math.random() * 1000000)
+        .toString()
+        .padEnd(6, "0");
     const verifChallenge = await createVerifChallenge(verifCode);
 
     const createAuthChallengeRes = await dbClient.rpc("create_auth_challenge", {
@@ -69,11 +72,24 @@ export async function POST(req: NextRequest) {
         _expected: verifChallenge,
     });
 
+    const url = process.env.NEXT_PUBLIC_URL;
+    if (!url) {
+        throw new Error("`NEXT_PUBLIC_URL` environment variable is undefined.");
+    }
+
+    const { html: htmlBody, text: textBody } = renderVerificationCodeEmail({
+        userName: user.username,
+        verificationCode: verifCode,
+        verificationUrl: url,
+        websiteUrl: url,
+    });
+
     sendEmail({
         sender: `munoz.arturoroman@gmail.com`,
         recipient: user.email,
         subject: "Verify your email",
-        textBody: `Your code is ${verifCode}. `,
+        textBody: textBody,
+        htmlBody: htmlBody,
     });
 
     return NextResponse.json({
