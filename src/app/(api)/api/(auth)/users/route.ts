@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
 
-import { createAuthChallenge } from "@/app/lib/api/auth/utils";
+import { createChallenge } from "@/app/lib/api/auth/utils";
 
 const passwordRegex = new RegExp(
     "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,64}$"
@@ -114,9 +114,8 @@ async function POST(req: NextRequest) {
     }
 
     // Create user
-    const authChallenge = await createAuthChallenge(
-        input.credentials.email,
-        input.credentials.password
+    const authChallenge = await createChallenge(
+        input.credentials.email + input.credentials.password
     );
 
     const createUserRes = await dbClient.rpc("create_user", {

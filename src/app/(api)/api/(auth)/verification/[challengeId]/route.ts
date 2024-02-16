@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
 
-import { verifChallenge } from "@/app/lib/api/auth/utils";
+import { verifyChallenge } from "@/app/lib/api/auth/utils";
 
 const verificationChallengeIdPOSTReq = z.object({
     code: z.string(),
@@ -59,7 +59,11 @@ export async function POST(req: NextRequest, context: { params: Params }) {
         );
     }
 
-    const passed = await verifChallenge(input.code);
+    const verif = await dbClient.rpc("fetch_auth_challenge_by_id", {
+        _challengeid: context.params.challengeId,
+    });
+
+    const passed = await verifyChallenge(input.code, verif.data[0].expected);
 
     if (!passed) {
         return NextResponse.json({ mesagge: "verif failed, bad code" });

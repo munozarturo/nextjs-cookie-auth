@@ -1,27 +1,11 @@
-import { compare, decodeBase64, genSalt, hash } from "bcryptjs";
+import { hash, verify } from "argon2";
 
-async function createAuthChallenge(
-    email: string,
-    password: string
-): Promise<string> {
-    return await hash(email + password, 10);
+async function createChallenge(data: string): Promise<string> {
+    return (await hash(data)).toString();
 }
 
-async function authChallenge(email: string, password: string): Promise<string> {
-    return await hash(email + password, 10);
+async function verifyChallenge(data: string, hash: string): Promise<boolean> {
+    return await verify(hash, data);
 }
 
-async function createVerifChallenge(verificationCode: string): Promise<string> {
-    return await hash(verificationCode, 10);
-}
-
-async function verifChallenge(verificationCode: string): Promise<string> {
-    return await hash(verificationCode, 10);
-}
-
-export {
-    authChallenge,
-    createAuthChallenge,
-    createVerifChallenge,
-    verifChallenge,
-};
+export { createChallenge, verifyChallenge };
