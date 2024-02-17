@@ -1,5 +1,6 @@
 import { SendEmailCommand } from "@aws-sdk/client-ses";
 import { createSESClient } from "@/app/lib/aws/ses";
+import { EmailNotificationError } from "../errors";
 
 interface Email {
     sender: string;
@@ -55,7 +56,7 @@ async function sendEmail(email: Email) {
         })
         .catch((error) => {
             console.log(error);
-            throw new Error("Failed to send email.");
+            throw new EmailNotificationError("Failed to send email.", 500);
         });
 }
 

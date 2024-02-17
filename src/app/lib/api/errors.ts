@@ -22,7 +22,11 @@ class VerificationError extends APIError {}
 
 class DatabaseError extends APIError {}
 
-class DatabaseConnectionError extends APIError {}
+class DatabaseConnectionError extends DatabaseError {}
+
+class NotificationError extends APIError {}
+
+class EmailNotificationError extends NotificationError {}
 
 export {
     APIError,
@@ -31,4 +35,6 @@ export {
     VerificationError,
     DatabaseError,
     DatabaseConnectionError,
+    NotificationError,
+    EmailNotificationError,
 };
