@@ -1,6 +1,7 @@
+import { DatabaseClient, createDbClient } from "@/app/lib/db/client";
 import { NextRequest, NextResponse } from "next/server";
-import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
+import { fetchAuthChallenge, passAuthChallenge } from "@/app/lib/db/actions";
 
 import { verifyChallenge } from "@/app/lib/api/auth/utils";
 
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest, context: { params: Params }) {
         );
     }
 
-    let dbClient: SupabaseClient;
+    let dbClient: DatabaseClient;
     try {
         dbClient = createDbClient();
     } catch (e: any) {
@@ -59,19 +60,17 @@ export async function POST(req: NextRequest, context: { params: Params }) {
         );
     }
 
-    const verif = await dbClient.rpc("fetch_auth_challenge_by_id", {
-        _challengeid: context.params.challengeId,
-    });
+    const { challengeId } = context.params;
 
-    const passed = await verifyChallenge(input.code, verif.data[0].expected);
+    const challenge = await fetchAuthChallenge(dbClient, { challengeId });
+
+    const passed = await verifyChallenge(input.code, challenge.expected);
 
     if (!passed) {
         return NextResponse.json({ mesagge: "verif failed, bad code" });
     }
 
-    await dbClient.rpc("pass_auth_challenge", {
-        _challengeid: context.params.challengeId,
-    });
+    await passAuthChallenge(dbClient, { challengeId });
 
     return NextResponse.json({
         msg: "verified",

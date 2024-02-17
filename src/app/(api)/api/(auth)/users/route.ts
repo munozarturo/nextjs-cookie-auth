@@ -1,5 +1,12 @@
+import { DatabaseClient, createDbClient } from "@/app/lib/db/client";
 import { NextRequest, NextResponse } from "next/server";
-import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
+import {
+    User,
+    checkUserEmailExists,
+    checkUsernameExists,
+    createUser,
+    fetchUser,
+} from "@/app/lib/db/actions";
 import { ZodError, z } from "zod";
 
 import { createChallenge } from "@/app/lib/api/auth/utils";
@@ -34,6 +41,7 @@ const usersPOSTReq = z.object({
 });
 
 async function POST(req: NextRequest) {
+    // Get body
     let body: Object;
     try {
         body = await req.json();
@@ -44,6 +52,7 @@ async function POST(req: NextRequest) {
         );
     }
 
+    // Parse input
     let input: z.infer<typeof usersPOSTReq>;
     try {
         input = usersPOSTReq.parse(body);
@@ -67,7 +76,10 @@ async function POST(req: NextRequest) {
         );
     }
 
-    let dbClient: SupabaseClient;
+    const { username, credentials } = input;
+
+    // Connect to db
+    let dbClient: DatabaseClient;
     try {
         dbClient = createDbClient();
     } catch (e: any) {
@@ -80,14 +92,13 @@ async function POST(req: NextRequest) {
         );
     }
 
-    // Check if user with username or email exists.
-    if (
-        (
-            await dbClient.rpc("check_user_exists_by_username", {
-                _username: input.username,
-            })
-        ).data
-    ) {
+    // create auth challenge
+    const passwordAuthChallenge = await createChallenge(
+        credentials.email + credentials.password
+    );
+
+    // Check if user with username
+    if (await checkUsernameExists(dbClient, { username })) {
         return NextResponse.json(
             {
                 status: "error",
@@ -97,13 +108,8 @@ async function POST(req: NextRequest) {
         );
     }
 
-    if (
-        (
-            await dbClient.rpc("check_user_exists_by_email", {
-                _email: input.credentials.email,
-            })
-        ).data
-    ) {
+    // Check if user with email exists
+    if (await checkUserEmailExists(dbClient, { email: credentials.email })) {
         return NextResponse.json(
             {
                 status: "error",
@@ -114,23 +120,39 @@ async function POST(req: NextRequest) {
     }
 
     // Create user
-    const authChallenge = await createChallenge(
-        input.credentials.email + input.credentials.password
-    );
-
-    const createUserRes = await dbClient.rpc("create_user", {
-        _username: input.username,
-        _email: input.credentials.email,
-        _password: authChallenge,
-    });
+    let createdUserId: string;
+    try {
+        createdUserId = await createUser(dbClient, {
+            username,
+            email: credentials.email,
+            hashedPassword: passwordAuthChallenge,
+        });
+    } catch (e: any) {
+        return NextResponse.json(
+            {
+                status: "error",
+                message: "Error creating user.",
+            },
+            { status: 500 }
+        );
+    }
 
     // Fetch user and return
-    const fetchUserRes = await dbClient.rpc("find_user_by_id", {
-        _userid: createUserRes.data,
-    });
+    let user: User;
+    try {
+        user = await fetchUser(dbClient, { userId: createdUserId });
+    } catch (e: any) {
+        return NextResponse.json(
+            {
+                status: "error",
+                message: "Error fetching user data.",
+            },
+            { status: 500 }
+        );
+    }
 
     return NextResponse.json({
-        user: fetchUserRes.data,
+        user: user,
     });
 }
 

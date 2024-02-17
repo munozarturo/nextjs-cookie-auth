@@ -1,10 +1,10 @@
+import { DatabaseClient, createDbClient } from "@/app/lib/db/client";
 import { NextRequest, NextResponse } from "next/server";
-import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
+import { createAuthChallenge, fetchUser } from "@/app/lib/db/actions";
 import {
     createChallenge,
     createVerificationCode,
-    createVerificationToken,
 } from "@/app/lib/api/auth/utils";
 
 import { renderVerificationCodeEmail } from "@/app/components/emails/verification-code";
@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    let dbClient: SupabaseClient;
+    const { userId } = input;
+
+    let dbClient: DatabaseClient;
     try {
         dbClient = createDbClient();
     } catch (e: any) {
@@ -61,29 +63,26 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const getUserRes = await dbClient.rpc("find_user_by_id", {
-        _userid: input.userId,
-    });
-    const user = getUserRes.data[0];
+    const user = await fetchUser(dbClient, { userId });
 
-    const verifCode = createVerificationCode(6);
-    const verifChallenge = await createChallenge(verifCode);
+    const verificationCode = createVerificationCode(6);
+    const verificationChallenge = await createChallenge(verificationCode);
 
-    const createAuthChallengeRes = await dbClient.rpc("create_auth_challenge", {
-        _userid: input.userId,
-        _expected: verifChallenge,
+    const authChallengeId = createAuthChallenge(dbClient, {
+        userId,
+        challenge: verificationChallenge,
     });
 
-    const url = process.env.NEXT_PUBLIC_URL;
-    if (!url) {
+    const URL = process.env.NEXT_PUBLIC_URL;
+    if (!URL) {
         throw new Error("`NEXT_PUBLIC_URL` environment variable is undefined.");
     }
 
     const { html: htmlBody, text: textBody } = renderVerificationCodeEmail({
         userName: user.username,
-        verificationCode: verifCode,
-        verificationUrl: url,
-        websiteUrl: url,
+        verificationCode: verificationCode,
+        verificationUrl: URL,
+        websiteUrl: URL,
     });
 
     sendEmail({
@@ -95,6 +94,6 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({
-        challengeId: createAuthChallengeRes.data,
+        challengeId: authChallengeId,
     });
 }
