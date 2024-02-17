@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseClient, createDbClient } from "@/app/lib/db/client";
 import { ZodError, z } from "zod";
+import {
+    createChallenge,
+    createVerificationCode,
+    createVerificationToken,
+} from "@/app/lib/api/auth/utils";
 
-import { createChallenge } from "@/app/lib/api/auth/utils";
 import { renderVerificationCodeEmail } from "@/app/components/emails/verification-code";
 import { sendEmail } from "@/app/lib/api/email/send-email";
 
@@ -62,9 +66,7 @@ export async function POST(req: NextRequest) {
     });
     const user = getUserRes.data[0];
 
-    const verifCode = Math.floor(Math.random() * 1000000)
-        .toString()
-        .padEnd(6, "0");
+    const verifCode = createVerificationCode(6);
     const verifChallenge = await createChallenge(verifCode);
 
     const createAuthChallengeRes = await dbClient.rpc("create_auth_challenge", {
