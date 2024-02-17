@@ -18,6 +18,8 @@ class RequestBodyError extends APIError {}
 
 class BodyParsingError extends APIError {}
 
+class ContextParsingError extends APIError {}
+
 class VerificationError extends APIError {}
 
 class DatabaseError extends APIError {}
@@ -32,6 +34,7 @@ export {
     APIError,
     RequestBodyError,
     BodyParsingError,
+    ContextParsingError,
     VerificationError,
     DatabaseError,
     DatabaseConnectionError,

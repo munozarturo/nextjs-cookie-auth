@@ -1,11 +1,18 @@
-import { DatabaseClient, createDbClient } from "@/app/lib/db/client";
-import { NextRequest, NextResponse } from "next/server";
-import { ZodError, z } from "zod";
 import { fetchAuthChallenge, passAuthChallenge } from "@/app/lib/db/actions";
+import {
+    getBody,
+    handleError,
+    handleResponse,
+    parseContext,
+} from "@/app/lib/api/utils";
 
+import { NextRequest } from "next/server";
+import { VerificationError } from "@/app/lib/api/errors";
+import { createDbClient } from "@/app/lib/db/client";
 import { verifyChallenge } from "@/app/lib/api/auth/utils";
+import { z } from "zod";
 
-const verificationChallengeIdPOSTReq = z.object({
+const contextSchema = z.object({
     code: z.string(),
 });
 
@@ -14,65 +21,27 @@ interface Params {
 }
 
 export async function POST(req: NextRequest, context: { params: Params }) {
-    let body: Object;
     try {
-        body = await req.json();
-    } catch (e: any) {
-        return NextResponse.json(
-            { status: "error", message: "No body." },
-            { status: 400 }
-        );
-    }
+        const body = getBody(req);
+        const input = parseContext(body, contextSchema);
+        const dbClient = createDbClient();
 
-    let input: z.infer<typeof verificationChallengeIdPOSTReq>;
-    try {
-        input = verificationChallengeIdPOSTReq.parse(body);
-    } catch (e: any) {
-        if (e instanceof ZodError) {
-            return NextResponse.json(
-                {
-                    status: "error",
-                    message: "Bad request contents.",
-                },
-                { status: 400 }
+        const { challengeId } = context.params;
+
+        const challenge = await fetchAuthChallenge(dbClient, { challengeId });
+        const passed = await verifyChallenge(input.code, challenge.expected);
+
+        if (!passed) {
+            throw new VerificationError(
+                "Verification failed. Bad verification token.",
+                404
             );
         }
 
-        return NextResponse.json(
-            {
-                status: "error",
-                message: "Unknown error verifying request contents.",
-            },
-            { status: 500 }
-        );
-    }
+        await passAuthChallenge(dbClient, { challengeId });
 
-    let dbClient: DatabaseClient;
-    try {
-        dbClient = createDbClient();
+        return handleResponse({ message: "Verified.", data: {}, status: 200 });
     } catch (e: any) {
-        return NextResponse.json(
-            {
-                status: "error",
-                message: "Unknown error connecting to database.",
-            },
-            { status: 500 }
-        );
+        return handleError(e);
     }
-
-    const { challengeId } = context.params;
-
-    const challenge = await fetchAuthChallenge(dbClient, { challengeId });
-
-    const passed = await verifyChallenge(input.code, challenge.expected);
-
-    if (!passed) {
-        return NextResponse.json({ mesagge: "verif failed, bad code" });
-    }
-
-    await passAuthChallenge(dbClient, { challengeId });
-
-    return NextResponse.json({
-        msg: "verified",
-    });
 }

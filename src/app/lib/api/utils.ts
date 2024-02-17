@@ -1,4 +1,9 @@
-import { APIError, BodyParsingError, RequestBodyError } from "./errors";
+import {
+    APIError,
+    BodyParsingError,
+    ContextParsingError,
+    RequestBodyError,
+} from "./errors";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError, z } from "zod";
 
@@ -19,6 +24,21 @@ function parseBody<T extends z.ZodType<any, any>>(
     } catch (e: any) {
         if (e instanceof ZodError) {
             throw new BodyParsingError("Error parsing body.", 400);
+        }
+
+        throw e;
+    }
+}
+
+function parseContext<T extends z.ZodType<any, any>>(
+    context: Object,
+    schema: T
+): z.infer<T> {
+    try {
+        return schema.parse(context);
+    } catch (e: any) {
+        if (e instanceof ZodError) {
+            throw new ContextParsingError("Error parsing context.", 400);
         }
 
         throw e;
@@ -58,4 +78,4 @@ function handleError(
     });
 }
 
-export { getBody, parseBody, handleResponse, handleError };
+export { getBody, parseBody, parseContext, handleResponse, handleError };
