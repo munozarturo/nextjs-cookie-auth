@@ -1,8 +1,8 @@
 import { Database } from "./db.types";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient as DatabaseClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
 
-function createClient(): SupabaseClient {
+function createClient(): DatabaseClient {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!supabaseUrl) {
         throw new Error(
@@ -20,4 +20,4 @@ function createClient(): SupabaseClient {
     return createBrowserClient<Database>(supabaseUrl, supabaseKey);
 }
 
-export { createClient as createDbClient, type SupabaseClient };
+export { createClient as createDbClient, type DatabaseClient };
