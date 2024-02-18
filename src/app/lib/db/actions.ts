@@ -49,6 +49,36 @@ async function findUserById(
     return user;
 }
 
+interface UserWithCredentials extends User {
+    passwordHash: string;
+}
+
+async function findUserByEmail(
+    client: DatabaseClient,
+    args: { email: string }
+): Promise<UserWithCredentials> {
+    const res = await client.rpc("find_user_by_email", {
+        _email: args.email,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error fetching user.", 500);
+    }
+
+    const { user_id, username, email, email_verified, password_hash } =
+        res.data[0];
+
+    const user: UserWithCredentials = {
+        userId: user_id,
+        username: username,
+        email: email,
+        emailVerified: email_verified,
+        passwordHash: password_hash,
+    };
+
+    return user;
+}
+
 async function checkUsernameExists(
     client: DatabaseClient,
     args: { username: string }
@@ -222,12 +252,75 @@ async function resetPassword(
     }
 }
 
+interface Session {
+    sessionId: string;
+    userId: string;
+    createdAt: Date;
+    expiresAt: Date;
+}
+
+async function createSession(
+    client: DatabaseClient,
+    args: { userId: string }
+): Promise<string> {
+    const res = await client.rpc("create_session", { _user_id: args.userId });
+
+    if (res.error) {
+        throw new DatabaseError("Error creating session.", 500);
+    }
+
+    return res.data;
+}
+
+async function findSessionById(
+    client: DatabaseClient,
+    args: { sessionId: string }
+): Promise<Session> {
+    const res = await client.rpc("find_session_by_id", {
+        _session_id: args.sessionId,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error fetching session.", 500);
+    }
+
+    const {
+        session_id: sessionId,
+        user_id: userId,
+        created_at: createdAt,
+        expires_at: expiresAt,
+    } = res.data;
+
+    const session: Session = {
+        sessionId,
+        userId,
+        createdAt: new Date(createdAt),
+        expiresAt: new Date(expiresAt),
+    };
+
+    return session;
+}
+
+async function deleteSessionById(
+    client: DatabaseClient,
+    args: { sessionId: string }
+): Promise<void> {
+    const res = await client.rpc("delete_session_by_id", {
+        _session_id: args.sessionId,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error deleting session.", 500);
+    }
+}
+
 export {
     type User,
     checkUsernameExists,
     checkUserEmailExists,
     createUser,
     findUserById,
+    findUserByEmail,
     type EmailVerification,
     createEmailVerification,
     getEmailVerification,
@@ -236,4 +329,8 @@ export {
     createPasswordReset,
     getPasswordReset,
     resetPassword,
+    type Session,
+    createSession,
+    findSessionById,
+    deleteSessionById,
 };
