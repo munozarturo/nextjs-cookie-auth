@@ -1,6 +1,5 @@
 import {
     Body,
-    Button,
     Container,
     Head,
     Heading,
@@ -24,7 +23,7 @@ function PasswordResetEmail({ userName, websiteUrl }: PasswordResetEmailProps) {
     return (
         <Html>
             <Head />
-            <Preview>Password Reset Request</Preview>
+            <Preview>Password Reset Succesfull</Preview>
             <Tailwind>
                 <Body className="bg-white font-sans">
                     <Container className="mx-auto py-5 px-0 max-w-xl flex flex-col">
