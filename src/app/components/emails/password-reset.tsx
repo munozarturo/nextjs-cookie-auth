@@ -8,7 +8,6 @@ import {
     Html,
     Link,
     Preview,
-    Section,
     Tailwind,
     Text,
 } from "@react-email/components";
@@ -18,15 +17,10 @@ import { renderEmail } from "@/app/lib/api/email/render-email";
 
 interface PasswordResetEmailProps {
     userName: string;
-    resetUrl: string;
     websiteUrl: string;
 }
 
-function PasswordResetEmail({
-    userName,
-    resetUrl,
-    websiteUrl,
-}: PasswordResetEmailProps) {
+function PasswordResetEmail({ userName, websiteUrl }: PasswordResetEmailProps) {
     return (
         <Html>
             <Head />
@@ -41,21 +35,7 @@ function PasswordResetEmail({
                             Hello {userName},
                         </Text>
                         <Text className="mb-4 text-base leading-normal text-gray-900">
-                            Someone recently requested a password change for
-                            your account. If this was you, you can set a new
-                            password here:
-                        </Text>
-                        <Section className="py-3 flex flex-row items-center justify-center w-full">
-                            <Button
-                                className="bg-black rounded text-white font-semibold text-base no-underline text-center block px-5 py-2"
-                                href={resetUrl}
-                            >
-                                Reset Password
-                            </Button>
-                        </Section>
-                        <Text className="mb-4 text-base leading-normal text-gray-900">
-                            If you don't want to change your password or didn't
-                            request this, just ignore and delete this message.
+                            Your password has been succesfully changed.
                         </Text>
                         <Hr className="border-gray-300 my-10" />
                         <Link

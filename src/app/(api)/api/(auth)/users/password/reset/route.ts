@@ -10,7 +10,7 @@ import {
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/app/lib/api/errors";
 import { createDbClient } from "@/app/lib/db/client";
-import { renderPasswordResetEmail } from "@/app/components/emails/reset-password";
+import { renderPasswordResetRequestEmail } from "@/app/components/emails/reset-password-request";
 import { sendEmail } from "@/app/lib/api/email/send-email";
 import { z } from "zod";
 
@@ -50,11 +50,12 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { html: htmlBody, text: textBody } = renderPasswordResetEmail({
-            userName: user.username + token,
-            resetUrl: URL,
-            websiteUrl: URL,
-        });
+        const { html: htmlBody, text: textBody } =
+            renderPasswordResetRequestEmail({
+                userName: user.username + token,
+                resetUrl: URL,
+                websiteUrl: URL,
+            });
 
         await sendEmail({
             sender: "munoz.arturoroman@gmail.com",

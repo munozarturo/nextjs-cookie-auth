@@ -32,20 +32,23 @@ export async function POST(req: NextRequest, context: { params: Params }) {
 
         const { verificationId } = params;
 
-        const challenge = await getEmailVerification(dbClient, {
+        const emailVerification = await getEmailVerification(dbClient, {
             verificationId,
         });
 
-        const passed = await verifyHash(input.token, challenge.tokenHash);
+        const passed = await verifyHash(
+            input.token,
+            emailVerification.tokenHash
+        );
 
-        if (challenge.verified) {
+        if (emailVerification.verified) {
             throw new VerificationError(
                 "Verification failed. Challenge has already been verified.",
                 400
             );
         }
 
-        if (new Date(challenge.expiresAt) <= new Date(Date.now())) {
+        if (new Date(emailVerification.expiresAt) <= new Date(Date.now())) {
             throw new VerificationError(
                 "Verification failed. Verification token expired.",
                 400
