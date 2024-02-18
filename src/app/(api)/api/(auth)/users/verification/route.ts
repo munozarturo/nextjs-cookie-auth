@@ -1,8 +1,5 @@
-import {
-    createChallenge,
-    createVerificationCode,
-} from "@/app/lib/api/auth/utils";
 import { createEmailVerification, findUserById } from "@/app/lib/db/actions";
+import { createVerificationCode, hash } from "@/app/lib/api/auth/utils";
 import {
     getBody,
     handleError,
@@ -30,12 +27,12 @@ export async function POST(req: NextRequest) {
 
         const user = await findUserById(dbClient, { userId });
 
-        const verificationCode = createVerificationCode(6);
-        const verificationChallenge = await createChallenge(verificationCode);
+        const verificationToken = createVerificationCode(6);
+        const tokenHash = await hash(verificationToken);
 
         const authChallengeId = await createEmailVerification(dbClient, {
             userId,
-            tokenHash: verificationChallenge,
+            tokenHash,
         });
 
         const URL = process.env.NEXT_PUBLIC_URL;
@@ -47,7 +44,7 @@ export async function POST(req: NextRequest) {
 
         const { html: htmlBody, text: textBody } = renderVerificationCodeEmail({
             userName: user.username,
-            verificationCode: verificationCode,
+            verificationCode: verificationToken,
             verificationUrl: URL,
             websiteUrl: URL,
         });

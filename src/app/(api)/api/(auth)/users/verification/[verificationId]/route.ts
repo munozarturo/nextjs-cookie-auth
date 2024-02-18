@@ -10,7 +10,7 @@ import { getEmailVerification, verifyEmail } from "@/app/lib/db/actions";
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/app/lib/api/errors";
 import { createDbClient } from "@/app/lib/db/client";
-import { verifyChallenge } from "@/app/lib/api/auth/utils";
+import { verifyHash } from "@/app/lib/api/auth/utils";
 import { z } from "zod";
 
 const reqSchema = z.object({
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, context: { params: Params }) {
         const challenge = await getEmailVerification(dbClient, {
             verificationId,
         });
-        const passed = await verifyChallenge(input.code, challenge.tokenHash);
+        const passed = await verifyHash(input.code, challenge.tokenHash);
 
         if (!passed) {
             throw new VerificationError(

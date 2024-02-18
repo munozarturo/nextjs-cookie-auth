@@ -1,4 +1,4 @@
-import { hash, verify } from "argon2";
+import { hash as argon2, verify as argon2Verify } from "argon2";
 
 function createVerificationCode(length: number): string {
     const verifCode = Math.floor(Math.random() * Math.pow(10, length))
@@ -20,17 +20,12 @@ function createVerificationToken(length: number): string {
     return verifToken.join("");
 }
 
-async function createChallenge(data: string): Promise<string> {
-    return (await hash(data)).toString();
+async function hash(data: string): Promise<string> {
+    return (await argon2(data)).toString();
 }
 
-async function verifyChallenge(data: string, hash: string): Promise<boolean> {
-    return await verify(hash, data);
+async function verifyHash(data: string, hash: string): Promise<boolean> {
+    return await argon2Verify(hash, data);
 }
 
-export {
-    createChallenge,
-    verifyChallenge,
-    createVerificationCode,
-    createVerificationToken,
-};
+export { hash, verifyHash, createVerificationCode, createVerificationToken };

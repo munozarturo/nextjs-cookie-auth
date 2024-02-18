@@ -13,8 +13,8 @@ import {
 
 import { APIError } from "@/app/lib/api/errors";
 import { NextRequest } from "next/server";
-import { createChallenge } from "@/app/lib/api/auth/utils";
 import { createDbClient } from "@/app/lib/db/client";
+import { hash } from "@/app/lib/api/auth/utils";
 import { z } from "zod";
 
 const passwordRegex = new RegExp(
@@ -54,7 +54,7 @@ async function POST(req: NextRequest) {
 
         const { username, credentials } = input;
 
-        const passwordAuthChallenge = await createChallenge(
+        const passwordHash = await hash(
             credentials.email + credentials.password
         );
 
@@ -67,7 +67,7 @@ async function POST(req: NextRequest) {
         const createdUserId = await createUser(dbClient, {
             username,
             email: credentials.email,
-            passwordHash: passwordAuthChallenge,
+            passwordHash: passwordHash,
         });
 
         const user = await findUserById(dbClient, { userId: createdUserId });
