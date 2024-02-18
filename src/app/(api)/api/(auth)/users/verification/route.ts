@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
 
         const { userId } = input;
 
-        const user = await findUserById(dbClient, { userId });
-
         const verificationToken = createVerificationCode(6);
         const tokenHash = await hash(verificationToken);
+
+        const user = await findUserById(dbClient, { userId });
 
         const emailVerificationId = await createEmailVerification(dbClient, {
             userId,
@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
             sender: `munoz.arturoroman@gmail.com`,
             recipient: user.email,
             subject: "Verify your email",
-            textBody: textBody,
-            htmlBody: htmlBody,
+            textBody,
+            htmlBody,
         });
 
         return handleResponse({
