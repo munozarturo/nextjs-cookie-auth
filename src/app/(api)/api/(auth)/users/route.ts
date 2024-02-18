@@ -31,9 +31,7 @@ async function POST(req: NextRequest) {
 
         const { username, credentials } = input;
 
-        const passwordHash = await hash(
-            credentials.email + credentials.password
-        );
+        const passwordHash = await hash(credentials.password);
 
         if (await checkUsernameExists(dbClient, { username }))
             throw new APIError("Username taken.", 400);
