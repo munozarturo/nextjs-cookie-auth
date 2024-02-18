@@ -14,5 +14,11 @@ export async function GET(req: NextRequest) {
 }
 
 export function POST(req: NextRequest) {
-    return NextResponse.json({});
+    try {
+        const client = createDbClient();
+
+        return handleResponse({ message: "Ok", data: {}, status: 200 });
+    } catch (e: any) {
+        return handleError(e);
+    }
 }

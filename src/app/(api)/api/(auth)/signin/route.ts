@@ -3,11 +3,7 @@ import {
     findSessionById,
     findUserByEmail,
 } from "@/app/lib/db/actions";
-import {
-    createSessionCookie,
-    hash,
-    verifyHash,
-} from "@/app/lib/api/auth/utils";
+import { createSessionCookie, verifyHash } from "@/app/lib/api/auth/utils";
 import {
     getBody,
     handleError,
@@ -49,8 +45,8 @@ export async function POST(req: NextRequest) {
         const session = await findSessionById(dbClient, {
             sessionId: createdSessionId,
         });
-        const sessionCookie = createSessionCookie(session);
 
+        const sessionCookie = createSessionCookie(session);
         cookies().set(
             sessionCookie.name,
             sessionCookie.value,

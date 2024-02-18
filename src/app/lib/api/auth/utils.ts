@@ -1,6 +1,8 @@
+import { Session, User, findSessionById, findUserById } from "../../db/actions";
 import { hash as argon2, verify as argon2Verify } from "argon2";
 
-import { Session } from "../../db/actions";
+import { DatabaseClient } from "../../db/client";
+import { cookies } from "next/headers";
 
 function createVerificationCode(length: number): string {
     const verifCode = Math.floor(Math.random() * Math.pow(10, length))
@@ -51,10 +53,41 @@ function createSessionCookie(session: Session): {
     };
 }
 
+function createBlankSessionCookie(): {
+    name: string;
+    value: string;
+    attributes: any;
+} {
+    return { name: "user-session", value: "", attributes: {} };
+}
+
+interface ServerSession {
+    sessionId: string;
+    createdAt: Date;
+    expiresAt: Date;
+    userId: string;
+    user: User;
+}
+
+async function getSession(
+    client: DatabaseClient
+): Promise<ServerSession | null> {
+    const sessionId = cookies().get("user-session")?.value;
+
+    if (!sessionId) return null;
+
+    const session = await findSessionById(client, { sessionId });
+    const user = await findUserById(client, { userId: session.userId });
+
+    return { ...session, user };
+}
+
 export {
     hash,
     verifyHash,
     createVerificationCode,
     createVerificationToken,
     createSessionCookie,
+    createBlankSessionCookie,
+    getSession,
 };
