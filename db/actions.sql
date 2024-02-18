@@ -31,6 +31,18 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION find_user_by_email(_email TEXT)
+RETURNS TABLE(user_id UUID, username TEXT, email TEXT, email_verified BOOLEAN, password_hash TEXT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.user_id, u.username, u.email, u.email_verified, u.password_hash
+    FROM users AS u
+    WHERE u.email = _email;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION check_user_exists_by_username(
     _username TEXT
 )
