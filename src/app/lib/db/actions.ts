@@ -89,7 +89,7 @@ async function createEmailVerification(
     });
 
     if (res.error) {
-        throw new DatabaseError("Error creating auth challenge.", 500);
+        throw new DatabaseError("Error creating email verification.", 500);
     }
 
     return res.data;
@@ -150,13 +150,90 @@ async function verifyEmail(
     }
 }
 
+async function createPasswordReset(
+    client: DatabaseClient,
+    args: { userId: string; tokenHash: string }
+): Promise<string> {
+    const res = await client.rpc("create_password_reset", {
+        _user_id: args.userId,
+        _token_hash: args.tokenHash,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error creating email verification.", 500);
+    }
+
+    return res.data;
+}
+
+interface PasswordReset {
+    passwordResetId: string;
+    userId: string;
+    tokenHash: string;
+    utilized: boolean;
+    createdAt: Date;
+    expiresAt: Date;
+}
+
+async function getPasswordReset(
+    client: DatabaseClient,
+    args: { passwordResetId: string }
+): Promise<PasswordReset> {
+    const res = await client.rpc("get_password_reset", {
+        _password_reset_id: args.passwordResetId,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error getting password reset.", 500);
+    }
+
+    const {
+        password_reset_id: passwordResetId,
+        user_id: userId,
+        token_hash: tokenHash,
+        utilized,
+        created_at: createdAt,
+        expires_at: expiresAt,
+    } = res.data[0];
+
+    const passwordReset: PasswordReset = {
+        passwordResetId,
+        userId,
+        tokenHash,
+        utilized,
+        createdAt: new Date(createdAt),
+        expiresAt: new Date(expiresAt),
+    };
+
+    return passwordReset;
+}
+
+async function resetPassword(
+    client: DatabaseClient,
+    args: { passwordResetId: string; newPasswordHash: string }
+): Promise<void> {
+    const res = await client.rpc("reset_password", {
+        _password_reset_id: args.passwordResetId,
+        _password_hash: args.newPasswordHash,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error resetting password.", 500);
+    }
+}
+
 export {
+    type User,
     checkUsernameExists,
     checkUserEmailExists,
     createUser,
     findUserById,
-    type User,
+    type EmailVerification,
     createEmailVerification,
     getEmailVerification,
     verifyEmail,
+    type PasswordReset,
+    createPasswordReset,
+    getPasswordReset,
+    resetPassword,
 };

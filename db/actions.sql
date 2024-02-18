@@ -127,3 +127,72 @@ BEGIN
     END IF;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION create_password_reset(
+    _user_id UUID,
+    _token_hash TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _password_reset_id UUID;
+BEGIN
+    -- Insert the new password reset record into the password_resets table
+    INSERT INTO password_resets (user_id, token_hash)
+    VALUES (_user_id, _token_hash)
+    RETURNING password_reset_id INTO _password_reset_id;
+
+    -- Return the UUID of the newly created password reset record
+    RETURN _password_reset_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_password_reset(_password_reset_id UUID)
+RETURNS TABLE(
+    password_reset_id UUID,
+    user_id UUID,
+    token_hash TEXT,
+    utilized BOOLEAN,
+    created_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.password_reset_id, p.user_id, p.token_hash, p.utilized, p.created_at, p.expires_at
+    FROM password_resets p
+    WHERE p.password_reset_id = _password_reset_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION reset_password(_password_reset_id UUID, _password_hash TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Check if the password reset entry exists, is still valid (not expired), and has not been utilized
+    IF NOT EXISTS (
+        SELECT 1
+        FROM password_resets
+        WHERE password_reset_id = _password_reset_id
+        AND expires_at > CURRENT_TIMESTAMP
+        AND utilized = FALSE
+    ) THEN
+        RAISE EXCEPTION 'Password reset ID does not exist, the password reset has expired, or it has already been utilized.';
+    ELSE
+        -- Update the users table to set the new password_hash for the user associated with this password reset
+        UPDATE users
+        SET password_hash = _password_hash
+        WHERE user_id = (
+            SELECT user_id FROM password_resets WHERE password_reset_id = _password_reset_id
+        );
+
+        -- Update the password_resets table to set utilized = TRUE for the password reset
+        UPDATE password_resets
+        SET utilized = TRUE
+        WHERE password_reset_id = _password_reset_id;
+    END IF;
+END;
+$$;
