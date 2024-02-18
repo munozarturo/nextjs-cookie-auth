@@ -22,7 +22,7 @@ interface Params {
 
 export async function POST(req: NextRequest, context: { params: Params }) {
     try {
-        const body = getBody(req);
+        const body = await getBody(req);
         const input = parseContext(body, contextSchema);
         const dbClient = createDbClient();
 

@@ -23,6 +23,7 @@ function parseBody<T extends z.ZodType<any, any>>(
         return schema.parse(body);
     } catch (e: any) {
         if (e instanceof ZodError) {
+            console.log(e);
             throw new BodyParsingError("Error parsing body.", 400);
         }
 

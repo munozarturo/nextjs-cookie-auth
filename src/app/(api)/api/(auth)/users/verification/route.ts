@@ -22,7 +22,7 @@ const reqSchema = z.object({
 
 export async function POST(req: NextRequest) {
     try {
-        const body = getBody(req);
+        const body = await getBody(req);
         const input = parseBody(body, reqSchema);
         const dbClient = createDbClient();
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         const verificationCode = createVerificationCode(6);
         const verificationChallenge = await createChallenge(verificationCode);
 
-        const authChallengeId = createAuthChallenge(dbClient, {
+        const authChallengeId = await createAuthChallenge(dbClient, {
             userId,
             challenge: verificationChallenge,
         });
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
             websiteUrl: URL,
         });
 
-        sendEmail({
+        await sendEmail({
             sender: `munoz.arturoroman@gmail.com`,
             recipient: user.email,
             subject: "Verify your email",

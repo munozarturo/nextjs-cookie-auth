@@ -1,3 +1,4 @@
+import { DatabaseError } from "../api/errors";
 import { DatabaseClient } from "./client";
 
 async function checkUsernameExists(
@@ -7,6 +8,10 @@ async function checkUsernameExists(
     const res = await client.rpc("check_user_exists_by_username", {
         _username: args.username,
     });
+
+    if (res.error) {
+        throw new DatabaseError("Error checking username validity.", 500);
+    }
 
     return res.data;
 }
@@ -18,6 +23,10 @@ async function checkUserEmailExists(
     const res = await client.rpc("check_user_exists_by_email", {
         _email: args.email,
     });
+
+    if (res.error) {
+        throw new DatabaseError("Error checking email validity.", 500);
+    }
 
     return res.data;
 }
@@ -31,6 +40,10 @@ async function createUser(
         _email: args.email,
         _password: args.hashedPassword,
     });
+
+    if (res.error) {
+        throw new DatabaseError("Error creating user.", 500);
+    }
 
     return res.data;
 }
@@ -55,6 +68,10 @@ async function fetchUser(
         _userid: args.userId,
     });
 
+    if (res.error) {
+        throw new DatabaseError("Error fetching user.", 500);
+    }
+
     return res.data[0];
 }
 
@@ -66,6 +83,10 @@ async function createAuthChallenge(
         _userid: args.userId,
         _expected: args.challenge,
     });
+
+    if (res.error) {
+        throw new DatabaseError("Error creating auth challenge.", 500);
+    }
 
     return res.data;
 }
@@ -86,6 +107,10 @@ async function fetchAuthChallenge(
         _challengeid: args.challengeId,
     });
 
+    if (res.error) {
+        throw new DatabaseError("Error fetching auth challenge.", 500);
+    }
+
     return res.data[0];
 }
 
@@ -96,6 +121,10 @@ async function passAuthChallenge(
     const res = await client.rpc("pass_auth_challenge", {
         _challengeid: args.challengeId,
     });
+
+    if (res.error) {
+        throw new DatabaseError("Error passing auth challenge.", 500);
+    }
 }
 
 export {

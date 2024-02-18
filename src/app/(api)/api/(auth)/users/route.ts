@@ -48,7 +48,7 @@ const reqSchema = z.object({
 
 async function POST(req: NextRequest) {
     try {
-        const body = getBody(req);
+        const body = await getBody(req);
         const input = parseBody(body, reqSchema);
         const dbClient = createDbClient();
 
@@ -70,7 +70,7 @@ async function POST(req: NextRequest) {
             hashedPassword: passwordAuthChallenge,
         });
 
-        const user = fetchUser(dbClient, { userId: createdUserId });
+        const user = await fetchUser(dbClient, { userId: createdUserId });
 
         return handleResponse({
             message: "Succesfully created user.",
