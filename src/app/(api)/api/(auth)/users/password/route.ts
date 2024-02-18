@@ -1,22 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+    getBody,
+    handleError,
+    handleResponse,
+    parseBody,
+} from "@/app/lib/api/utils";
 
-import { renderPasswordResetEmail } from "@/app/components/emails/reset-password";
-import { sendEmail } from "@/app/lib/api/email/send-email";
+import { NextRequest } from "next/server";
+import { createDbClient } from "@/app/lib/db/client";
+import { z } from "zod";
 
-export function POST(req: NextRequest) {
-    const { text: textBody, html: htmlBody } = renderPasswordResetEmail({
-        userName: "munozarturo",
-        resetUrl: "example.com",
-        websiteUrl: "example.com",
-    });
+const reqSchema = z.object({});
 
-    sendEmail({
-        sender: "munoz.arturoroman@gmail.com",
-        recipient: "hsh47@case.edu",
-        subject: "Reset your password",
-        textBody: textBody,
-        htmlBody: htmlBody,
-    });
+export async function POST(req: NextRequest) {
+    try {
+        const body = await getBody(req);
+        const input = parseBody(body, reqSchema);
+        const dbClient = createDbClient();
 
-    return NextResponse.json({});
+        return handleResponse({ message: "Ok", data: {}, status: 200 });
+    } catch (e: any) {
+        return handleError(e);
+    }
 }
