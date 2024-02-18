@@ -1,6 +1,13 @@
 import { DatabaseError } from "../api/errors";
 import { DatabaseClient } from "./client";
 
+interface User {
+    userId: string;
+    username: string;
+    email: string;
+    emailVerified: boolean;
+}
+
 async function createUser(
     client: DatabaseClient,
     args: { username: string; email: string; passwordHash: string }
@@ -16,13 +23,6 @@ async function createUser(
     }
 
     return res.data;
-}
-
-interface User {
-    userId: string;
-    username: string;
-    email: string;
-    emailVerified: boolean;
 }
 
 async function findUserById(
@@ -79,6 +79,15 @@ async function checkUserEmailExists(
     return res.data;
 }
 
+interface EmailVerification {
+    verificationId: string;
+    userId: string;
+    tokenHash: string;
+    verified: boolean;
+    createdAt: Date;
+    expiresAt: Date;
+}
+
 async function createEmailVerification(
     client: DatabaseClient,
     args: { userId: string; tokenHash: string }
@@ -93,15 +102,6 @@ async function createEmailVerification(
     }
 
     return res.data;
-}
-
-interface EmailVerification {
-    verificationId: string;
-    userId: string;
-    tokenHash: string;
-    verified: boolean;
-    createdAt: Date;
-    expiresAt: Date;
 }
 
 async function getEmailVerification(
@@ -150,6 +150,15 @@ async function verifyEmail(
     }
 }
 
+interface PasswordReset {
+    passwordResetId: string;
+    userId: string;
+    tokenHash: string;
+    utilized: boolean;
+    createdAt: Date;
+    expiresAt: Date;
+}
+
 async function createPasswordReset(
     client: DatabaseClient,
     args: { userId: string; tokenHash: string }
@@ -164,15 +173,6 @@ async function createPasswordReset(
     }
 
     return res.data;
-}
-
-interface PasswordReset {
-    passwordResetId: string;
-    userId: string;
-    tokenHash: string;
-    utilized: boolean;
-    createdAt: Date;
-    expiresAt: Date;
 }
 
 async function getPasswordReset(
