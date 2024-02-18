@@ -50,10 +50,10 @@ function handleResponse(res: {
     message: string;
     data: Object | null;
     status: number;
-}): NextResponse<{ timestamp: number; message: string; data: Object | null }> {
+}): NextResponse<{ timestamp: string; message: string; data: Object | null }> {
     return NextResponse.json(
         {
-            timestamp: Date.now(),
+            timestamp: new Date(Date.now()).toISOString(),
             message: res.message,
             data: res.data,
         },
@@ -63,7 +63,7 @@ function handleResponse(res: {
 
 function handleError(
     e: any
-): NextResponse<{ timestamp: number; message: string; data: Object | null }> {
+): NextResponse<{ timestamp: string; message: string; data: Object | null }> {
     if (e instanceof APIError) {
         return handleResponse({
             message: e.message,
