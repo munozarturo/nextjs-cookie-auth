@@ -289,7 +289,7 @@ async function findSessionById(
         user_id: userId,
         created_at: createdAt,
         expires_at: expiresAt,
-    } = res.data;
+    } = res.data[0];
 
     const session: Session = {
         sessionId,
