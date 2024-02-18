@@ -196,3 +196,42 @@ BEGIN
     END IF;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION create_session(
+    _user_id UUID
+)
+RETURNS UUID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _session_id UUID;
+BEGIN
+    INSERT INTO sessions (user_id)
+    VALUES (_user_id)
+    RETURNING session_id INTO _session_id;
+
+    RETURN _session_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION find_session_by_id(_session_id UUID)
+RETURNS TABLE(session_id UUID, user_id UUID, created_at TIMESTAMP WITH TIME ZONE, expires_at TIMESTAMP WITH TIME ZONE)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT s.session_id, s.user_id, s.created_at, s.expires_at
+    FROM sessions AS s
+    WHERE s.session_id = _session_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION delete_session_by_id(_session_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM sessions
+    WHERE session_id = _session_id;
+END;
+$$;
