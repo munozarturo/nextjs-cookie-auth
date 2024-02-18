@@ -9,59 +9,126 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      auth_challenges: {
+      email_verifications: {
         Row: {
-          challengeid: string
           created_at: string | null
-          expected: string
-          passed: boolean | null
-          userid: string
+          expires_at: string | null
+          token_hash: string
+          user_id: string
+          verification_id: string
+          verified: boolean | null
         }
         Insert: {
-          challengeid?: string
           created_at?: string | null
-          expected: string
-          passed?: boolean | null
-          userid: string
+          expires_at?: string | null
+          token_hash: string
+          user_id: string
+          verification_id?: string
+          verified?: boolean | null
         }
         Update: {
-          challengeid?: string
           created_at?: string | null
-          expected?: string
-          passed?: boolean | null
-          userid?: string
+          expires_at?: string | null
+          token_hash?: string
+          user_id?: string
+          verification_id?: string
+          verified?: boolean | null
         }
         Relationships: [
           {
-            foreignKeyName: "auth_challenges_userid_fkey"
-            columns: ["userid"]
+            foreignKeyName: "email_verifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["userid"]
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
+      password_resets: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          password_reset_id: string
+          token_hash: string
+          user_id: string
+          utilized: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          password_reset_id?: string
+          token_hash: string
+          user_id: string
+          utilized?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          password_reset_id?: string
+          token_hash?: string
+          user_id?: string
+          utilized?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_resets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          }
+        ]
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          session_id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
           }
         ]
       }
       users: {
         Row: {
           email: string
-          password: string
-          userid: string
+          email_verified: boolean | null
+          password_hash: string
+          user_id: string
           username: string
-          verified: boolean | null
         }
         Insert: {
           email: string
-          password: string
-          userid?: string
+          email_verified?: boolean | null
+          password_hash: string
+          user_id?: string
           username: string
-          verified?: boolean | null
         }
         Update: {
           email?: string
-          password?: string
-          userid?: string
+          email_verified?: boolean | null
+          password_hash?: string
+          user_id?: string
           username?: string
-          verified?: boolean | null
         }
         Relationships: []
       }
@@ -82,10 +149,23 @@ export type Database = {
         }
         Returns: boolean
       }
-      create_auth_challenge: {
+      create_email_verification: {
         Args: {
-          _userid: string
-          _expected: string
+          _user_id: string
+          _token_hash: string
+        }
+        Returns: string
+      }
+      create_password_reset: {
+        Args: {
+          _user_id: string
+          _token_hash: string
+        }
+        Returns: string
+      }
+      create_session: {
+        Args: {
+          _user_id: string
         }
         Returns: string
       }
@@ -93,39 +173,85 @@ export type Database = {
         Args: {
           _username: string
           _email: string
-          _password: string
+          _password_hash: string
         }
         Returns: string
       }
-      fetch_auth_challenge_by_id: {
+      delete_session_by_id: {
         Args: {
-          _challengeid: string
+          _session_id: string
+        }
+        Returns: undefined
+      }
+      find_session_by_id: {
+        Args: {
+          _session_id: string
         }
         Returns: {
-          challengeid: string
-          userid: string
-          expected: string
-          passed: boolean
+          session_id: string
+          user_id: string
           created_at: string
+          expires_at: string
         }[]
       }
       find_user_by_id: {
         Args: {
-          _userid: string
+          _user_id: string
         }
         Returns: {
-          userid: string
+          user_id: string
           username: string
           email: string
-          verified: boolean
+          email_verified: boolean
         }[]
       }
-      pass_auth_challenge: {
+      get_email_verification: {
         Args: {
-          _challengeid: string
+          _verification_id: string
+        }
+        Returns: {
+          verification_id: string
+          user_id: string
+          token_hash: string
+          verified: boolean
+          created_at: string
+          expires_at: string
+        }[]
+      }
+      get_password_reset: {
+        Args: {
+          _password_reset_id: string
+        }
+        Returns: {
+          password_reset_id: string
+          user_id: string
+          token_hash: string
+          utilized: boolean
+          created_at: string
+          expires_at: string
+        }[]
+      }
+      reset_password: {
+        Args: {
+          _password_reset_id: string
+          _password_hash: string
         }
         Returns: undefined
       }
+      verify_email:
+        | {
+            Args: {
+              _verification_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _verification_id: string
+              _token_hash: string
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       [_ in never]: never
