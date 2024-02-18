@@ -1,6 +1,54 @@
 import { DatabaseError } from "../api/errors";
 import { DatabaseClient } from "./client";
 
+async function createUser(
+    client: DatabaseClient,
+    args: { username: string; email: string; passwordHash: string }
+): Promise<string> {
+    const res = await client.rpc("create_user", {
+        _username: args.username,
+        _email: args.email,
+        _password_hash: args.passwordHash,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error creating user.", 500);
+    }
+
+    return res.data;
+}
+
+interface User {
+    userId: string;
+    username: string;
+    email: string;
+    emailVerified: boolean;
+}
+
+async function findUserById(
+    client: DatabaseClient,
+    args: { userId: string }
+): Promise<User> {
+    const res = await client.rpc("find_user_by_id", {
+        _user_id: args.userId,
+    });
+
+    if (res.error) {
+        throw new DatabaseError("Error fetching user.", 500);
+    }
+
+    const { user_id, username, email, email_verified } = res.data[0];
+
+    const user: User = {
+        userId: user_id,
+        username: username,
+        email: email,
+        emailVerified: email_verified,
+    };
+
+    return user;
+}
+
 async function checkUsernameExists(
     client: DatabaseClient,
     args: { username: string }
@@ -31,57 +79,13 @@ async function checkUserEmailExists(
     return res.data;
 }
 
-async function createUser(
+async function createEmailVerification(
     client: DatabaseClient,
-    args: { username: string; email: string; hashedPassword: string }
+    args: { userId: string; tokenHash: string }
 ): Promise<string> {
-    const res = await client.rpc("create_user", {
-        _username: args.username,
-        _email: args.email,
-        _password: args.hashedPassword,
-    });
-
-    if (res.error) {
-        throw new DatabaseError("Error creating user.", 500);
-    }
-
-    return res.data;
-}
-
-interface User {
-    userid: string;
-    username: string;
-    email: string;
-    verified: string;
-}
-
-async function fetchUser(
-    client: DatabaseClient,
-    args: { userId: string }
-): Promise<{
-    userid: string;
-    username: string;
-    email: string;
-    verified: string;
-}> {
-    const res = await client.rpc("find_user_by_id", {
-        _userid: args.userId,
-    });
-
-    if (res.error) {
-        throw new DatabaseError("Error fetching user.", 500);
-    }
-
-    return res.data[0];
-}
-
-async function createAuthChallenge(
-    client: DatabaseClient,
-    args: { userId: string; challenge: string }
-): Promise<string> {
-    const res = await client.rpc("create_auth_challenge", {
-        _userid: args.userId,
-        _expected: args.challenge,
+    const res = await client.rpc("create_email_verification", {
+        _user_id: args.userId,
+        _token_hash: args.tokenHash,
     });
 
     if (res.error) {
@@ -91,39 +95,58 @@ async function createAuthChallenge(
     return res.data;
 }
 
-interface Challenge {
-    challengeid: string;
-    userid: string;
-    expected: string;
-    passed: boolean;
-    created_at: string;
+interface EmailVerification {
+    verificationId: string;
+    userId: string;
+    tokenHash: string;
+    verified: boolean;
+    createdAt: Date;
+    expiresAt: Date;
 }
 
-async function fetchAuthChallenge(
+async function getEmailVerification(
     client: DatabaseClient,
-    args: { challengeId: string }
-): Promise<Challenge> {
-    const res = await client.rpc("fetch_auth_challenge_by_id", {
-        _challengeid: args.challengeId,
+    args: { verificationId: string }
+): Promise<EmailVerification> {
+    const res = await client.rpc("get_email_verification", {
+        _verification_id: args.verificationId,
     });
 
     if (res.error) {
-        throw new DatabaseError("Error fetching auth challenge.", 500);
+        throw new DatabaseError("Error getting email verification.", 500);
     }
 
-    return res.data[0];
+    const {
+        verification_id: verificationId,
+        user_id: userId,
+        token_hash: tokenHash,
+        verified,
+        created_at: createdAt,
+        expires_at: expiresAt,
+    } = res.data[0];
+
+    const emailVerification: EmailVerification = {
+        verificationId,
+        userId,
+        tokenHash,
+        verified,
+        createdAt: new Date(createdAt),
+        expiresAt: new Date(expiresAt),
+    };
+
+    return emailVerification;
 }
 
-async function passAuthChallenge(
+async function verifyEmail(
     client: DatabaseClient,
-    args: { challengeId: string }
-) {
-    const res = await client.rpc("pass_auth_challenge", {
-        _challengeid: args.challengeId,
+    args: { verificationId: string }
+): Promise<void> {
+    const res = await client.rpc("verify_email", {
+        _verification_id: args.verificationId,
     });
 
     if (res.error) {
-        throw new DatabaseError("Error passing auth challenge.", 500);
+        throw new DatabaseError("Error verifying email.", 500);
     }
 }
 
@@ -131,9 +154,9 @@ export {
     checkUsernameExists,
     checkUserEmailExists,
     createUser,
-    fetchUser,
+    findUserById,
     type User,
-    createAuthChallenge,
-    fetchAuthChallenge,
-    passAuthChallenge,
+    createEmailVerification,
+    getEmailVerification,
+    verifyEmail,
 };

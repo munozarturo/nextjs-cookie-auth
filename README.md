@@ -21,7 +21,7 @@ AWS_SECRET_ACCESS_KEY=""
 Generating types with Supabase:
 
 ```bash
-npx supabase gen types typescript --project-id "jtythtlgtehiwjoaofkb" --schema public > src/app/lib/db/db.types.ts --debug
+npx supabase gen types typescript --project-id "$PROJECT_ID" --schema public > src/app/lib/db/db.types.ts --debug
 ```
 
 ## Email Service

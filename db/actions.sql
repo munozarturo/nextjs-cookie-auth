@@ -1,32 +1,33 @@
 CREATE OR REPLACE FUNCTION create_user(
     _username TEXT,
     _email TEXT,
-    _password TEXT
+    _password_hash TEXT
 )
 RETURNS UUID
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    new_user_id UUID;
+    _user_id UUID;
 BEGIN
-    INSERT INTO users (username, email, password)
-    VALUES (_username, _email, _password)
-    RETURNING userId INTO new_user_id;
-    
-    RETURN new_user_id;
+    -- Insert the new user into the users table and return the new user_id
+    INSERT INTO users (username, email, password_hash)
+    VALUES (_username, _email, _password_hash)
+    RETURNING user_id INTO _user_id;
+
+    -- Return the UUID of the newly created user
+    RETURN _user_id;
 END;
 $$;
 
--- returns list fix
-CREATE OR REPLACE FUNCTION find_user_by_id(_userid UUID)
-RETURNS TABLE(userid UUID, username TEXT, email TEXT, verified BOOLEAN)
+CREATE OR REPLACE FUNCTION find_user_by_id(_user_id UUID)
+RETURNS TABLE(user_id UUID, username TEXT, email TEXT, email_verified BOOLEAN)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT u.userId, u.username, u.email, u.verified
+    SELECT u.user_id, u.username, u.email, u.email_verified
     FROM users AS u
-    WHERE u.userId = _userid;
+    WHERE u.user_id = _user_id;
 END;
 $$;
 
@@ -58,67 +59,71 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION create_auth_challenge(
-    _userid UUID,
-    _expected TEXT
+CREATE OR REPLACE FUNCTION create_email_verification(
+    _user_id UUID,
+    _token_hash TEXT
 )
 RETURNS UUID
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    _challengeId UUID;
+    _verification_id UUID;
 BEGIN
-    INSERT INTO auth_challenges (userId, expected)
-    VALUES (_userid, _expected)
-    RETURNING challengeId INTO _challengeId;
-    
-    RETURN _challengeId;
+    -- Insert the new email verification record into the email_verifications table
+    INSERT INTO email_verifications (user_id, token_hash)
+    VALUES (_user_id, _token_hash)
+    RETURNING verification_id INTO _verification_id;
+
+    -- Return the UUID of the newly created email verification record
+    RETURN _verification_id;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fetch_auth_challenge_by_id(_challengeid UUID)
+CREATE OR REPLACE FUNCTION get_email_verification(_verification_id UUID)
 RETURNS TABLE(
-    challengeId UUID,
-    userId UUID,
-    expected TEXT,
-    passed BOOLEAN,
-    created_at TIMESTAMP WITH TIME ZONE
+    verification_id UUID,
+    user_id UUID,
+    token_hash TEXT,
+    verified BOOLEAN,
+    created_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT ac.challengeId, ac.userId, ac.expected, ac.passed, ac.created_at
-    FROM auth_challenges AS ac
-    WHERE ac.challengeId = _challengeid;
+    SELECT e.verification_id, e.user_id, e.token_hash, e.verified, e.created_at, e.expires_at
+    FROM email_verifications e
+    WHERE e.verification_id = _verification_id;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION pass_auth_challenge(_challengeid UUID)
+CREATE OR REPLACE FUNCTION verify_email(_verification_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Check if the challengeId exists
+    -- Check if the verification entry exists and is still valid (not expired)
     IF NOT EXISTS (
         SELECT 1
-        FROM auth_challenges
-        WHERE challengeId = _challengeid
+        FROM email_verifications
+        WHERE verification_id = _verification_id
+        AND expires_at > CURRENT_TIMESTAMP
+        AND verified = FALSE
     ) THEN
-        RAISE EXCEPTION 'Challenge ID does not exist.';
+        RAISE EXCEPTION 'Verification ID does not exist, token hash does not match, or the verification has expired.';
     ELSE
-        -- Update the auth_challenges table to set passed = TRUE for the challenge
-        UPDATE auth_challenges
-        SET passed = TRUE
-        WHERE challengeId = _challengeid;
-
-        -- Then, update the users table to set verified = TRUE for the associated userId
-        UPDATE users
+        -- Update the email_verifications table to set verified = TRUE for the verification
+        UPDATE email_verifications
         SET verified = TRUE
-        WHERE userId = (
-            SELECT userId FROM auth_challenges WHERE challengeId = _challengeid
+        WHERE verification_id = _verification_id;
+
+        -- Then, update the users table to set email_verified = TRUE for the associated user_id
+        UPDATE users
+        SET email_verified = TRUE
+        WHERE user_id = (
+            SELECT user_id FROM email_verifications WHERE verification_id = _verification_id
         );
     END IF;
 END;
 $$;
-

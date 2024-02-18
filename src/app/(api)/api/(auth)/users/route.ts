@@ -2,7 +2,7 @@ import {
     checkUserEmailExists,
     checkUsernameExists,
     createUser,
-    fetchUser,
+    findUserById,
 } from "@/app/lib/db/actions";
 import {
     getBody,
@@ -67,10 +67,10 @@ async function POST(req: NextRequest) {
         const createdUserId = await createUser(dbClient, {
             username,
             email: credentials.email,
-            hashedPassword: passwordAuthChallenge,
+            passwordHash: passwordAuthChallenge,
         });
 
-        const user = await fetchUser(dbClient, { userId: createdUserId });
+        const user = await findUserById(dbClient, { userId: createdUserId });
 
         return handleResponse({
             message: "Succesfully created user.",

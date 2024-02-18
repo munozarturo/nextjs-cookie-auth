@@ -1,4 +1,3 @@
-import { fetchAuthChallenge, passAuthChallenge } from "@/app/lib/db/actions";
 import {
     getBody,
     handleError,
@@ -6,6 +5,7 @@ import {
     parseBody,
     parseContext,
 } from "@/app/lib/api/utils";
+import { getEmailVerification, verifyEmail } from "@/app/lib/db/actions";
 
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/app/lib/api/errors";
@@ -18,10 +18,10 @@ const reqSchema = z.object({
 });
 
 interface Params {
-    challengeId: string;
+    verificationId: string;
 }
 
-const paramsSchema = z.object({ challengeId: z.string() });
+const paramsSchema = z.object({ verificationId: z.string() });
 
 export async function POST(req: NextRequest, context: { params: Params }) {
     try {
@@ -30,10 +30,12 @@ export async function POST(req: NextRequest, context: { params: Params }) {
         const params = parseContext(context.params, paramsSchema);
         const dbClient = createDbClient();
 
-        const { challengeId } = params;
+        const { verificationId } = params;
 
-        const challenge = await fetchAuthChallenge(dbClient, { challengeId });
-        const passed = await verifyChallenge(input.code, challenge.expected);
+        const challenge = await getEmailVerification(dbClient, {
+            verificationId,
+        });
+        const passed = await verifyChallenge(input.code, challenge.tokenHash);
 
         if (!passed) {
             throw new VerificationError(
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest, context: { params: Params }) {
             );
         }
 
-        await passAuthChallenge(dbClient, { challengeId });
+        await verifyEmail(dbClient, { verificationId });
 
         return handleResponse({ message: "Verified.", data: {}, status: 200 });
     } catch (e: any) {

@@ -1,8 +1,8 @@
-import { createAuthChallenge, fetchUser } from "@/app/lib/db/actions";
 import {
     createChallenge,
     createVerificationCode,
 } from "@/app/lib/api/auth/utils";
+import { createEmailVerification, findUserById } from "@/app/lib/db/actions";
 import {
     getBody,
     handleError,
@@ -28,14 +28,14 @@ export async function POST(req: NextRequest) {
 
         const { userId } = input;
 
-        const user = await fetchUser(dbClient, { userId });
+        const user = await findUserById(dbClient, { userId });
 
         const verificationCode = createVerificationCode(6);
         const verificationChallenge = await createChallenge(verificationCode);
 
-        const authChallengeId = await createAuthChallenge(dbClient, {
+        const authChallengeId = await createEmailVerification(dbClient, {
             userId,
-            challenge: verificationChallenge,
+            tokenHash: verificationChallenge,
         });
 
         const URL = process.env.NEXT_PUBLIC_URL;
