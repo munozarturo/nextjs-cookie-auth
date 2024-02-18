@@ -14,7 +14,7 @@ import { verifyHash } from "@/app/lib/api/auth/utils";
 import { z } from "zod";
 
 const reqSchema = z.object({
-    code: z.string(),
+    token: z.string(),
 });
 
 interface Params {
@@ -35,12 +35,27 @@ export async function POST(req: NextRequest, context: { params: Params }) {
         const challenge = await getEmailVerification(dbClient, {
             verificationId,
         });
-        const passed = await verifyHash(input.code, challenge.tokenHash);
+
+        const passed = await verifyHash(input.token, challenge.tokenHash);
+
+        if (challenge.verified) {
+            throw new VerificationError(
+                "Verification failed. Challenge has already been verified.",
+                400
+            );
+        }
+
+        if (new Date(challenge.expiresAt) <= new Date(Date.now())) {
+            throw new VerificationError(
+                "Verification failed. Verification token expired.",
+                400
+            );
+        }
 
         if (!passed) {
             throw new VerificationError(
                 "Verification failed. Bad verification token.",
-                404
+                400
             );
         }
 

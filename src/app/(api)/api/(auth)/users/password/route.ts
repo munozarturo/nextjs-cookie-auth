@@ -9,7 +9,9 @@ import { NextRequest } from "next/server";
 import { createDbClient } from "@/app/lib/db/client";
 import { z } from "zod";
 
-const reqSchema = z.object({});
+const reqSchema = z.object({
+    userId: z.string(),
+});
 
 export async function POST(req: NextRequest) {
     try {

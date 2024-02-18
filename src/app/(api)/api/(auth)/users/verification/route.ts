@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         const verificationToken = createVerificationCode(6);
         const tokenHash = await hash(verificationToken);
 
-        const authChallengeId = await createEmailVerification(dbClient, {
+        const emailVerificationId = await createEmailVerification(dbClient, {
             userId,
             tokenHash,
         });
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
         return handleResponse({
             message: "Sucessfully created challenge.",
-            data: { challengeId: authChallengeId },
+            data: { emailVerificationId },
             status: 200,
         });
     } catch (e: any) {
