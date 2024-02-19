@@ -4,13 +4,13 @@ import {
     handleResponse,
     parseBody,
     parseContext,
-} from "@/app/lib/api/utils";
-import { getEmailVerification, verifyEmail } from "@/app/lib/db/actions";
+} from "@/lib/api/utils";
+import { getEmailVerification, verifyEmail } from "@/lib/db/actions";
 
 import { NextRequest } from "next/server";
-import { VerificationError } from "@/app/lib/api/errors";
-import { createDbClient } from "@/app/lib/db/client";
-import { verifyHash } from "@/app/lib/api/auth/utils";
+import { VerificationError } from "@/lib/api/errors";
+import { createDbClient } from "@/lib/db/client";
+import { verifyHash } from "@/lib/api/auth/utils";
 import { z } from "zod";
 
 const reqSchema = z.object({

@@ -2,20 +2,20 @@ import {
     createSession,
     findSessionById,
     findUserByEmail,
-} from "@/app/lib/db/actions";
-import { createSessionCookie, verifyHash } from "@/app/lib/api/auth/utils";
+} from "@/lib/db/actions";
+import { createSessionCookie, verifyHash } from "@/lib/api/auth/utils";
 import {
     getBody,
     handleError,
     handleResponse,
     parseBody,
-} from "@/app/lib/api/utils";
+} from "@/lib/api/utils";
 
-import { AuthError } from "@/app/lib/api/errors";
+import { AuthError } from "@/lib/api/errors";
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { createDbClient } from "@/app/lib/db/client";
-import { credentialsSchema } from "@/app/lib/validations";
+import { createDbClient } from "@/lib/db/client";
+import { credentialsSchema } from "@/lib/validations/auth";
 import { z } from "zod";
 
 const reqSchema = z.object({

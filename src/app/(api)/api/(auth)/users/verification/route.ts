@@ -1,16 +1,16 @@
-import { createEmailVerification, findUserById } from "@/app/lib/db/actions";
-import { createVerificationCode, hash } from "@/app/lib/api/auth/utils";
+import { createEmailVerification, findUserById } from "@/lib/db/actions";
+import { createVerificationCode, hash } from "@/lib/api/auth/utils";
 import {
     getBody,
     handleError,
     handleResponse,
     parseBody,
-} from "@/app/lib/api/utils";
+} from "@/lib/api/utils";
 
 import { NextRequest } from "next/server";
-import { createDbClient } from "@/app/lib/db/client";
-import { renderVerificationCodeEmail } from "@/app/components/emails/verification-code";
-import { sendEmail } from "@/app/lib/api/email/send-email";
+import { createDbClient } from "@/lib/db/client";
+import { renderVerificationCodeEmail } from "@/components/emails/verification-code";
+import { sendEmail } from "@/lib/api/email/send-email";
 import { z } from "zod";
 
 const reqSchema = z.object({

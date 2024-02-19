@@ -1,11 +1,11 @@
-import { createBlankSessionCookie, getSession } from "@/app/lib/api/auth/utils";
-import { handleError, handleResponse } from "@/app/lib/api/utils";
+import { createBlankSessionCookie, getSession } from "@/lib/api/auth/utils";
+import { handleError, handleResponse } from "@/lib/api/utils";
 
-import { AuthError } from "@/app/lib/api/errors";
+import { AuthError } from "@/lib/api/errors";
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { createDbClient } from "@/app/lib/db/client";
-import { deleteSessionById } from "@/app/lib/db/actions";
+import { createDbClient } from "@/lib/db/client";
+import { deleteSessionById } from "@/lib/db/actions";
 
 export async function POST(req: NextRequest) {
     try {

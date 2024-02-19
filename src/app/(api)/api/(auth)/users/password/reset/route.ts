@@ -1,17 +1,17 @@
-import { createPasswordReset, findUserById } from "@/app/lib/db/actions";
-import { createVerificationToken, hash } from "@/app/lib/api/auth/utils";
+import { createPasswordReset, findUserById } from "@/lib/db/actions";
+import { createVerificationToken, hash } from "@/lib/api/auth/utils";
 import {
     getBody,
     handleError,
     handleResponse,
     parseBody,
-} from "@/app/lib/api/utils";
+} from "@/lib/api/utils";
 
 import { NextRequest } from "next/server";
-import { VerificationError } from "@/app/lib/api/errors";
-import { createDbClient } from "@/app/lib/db/client";
-import { renderPasswordResetRequestEmail } from "@/app/components/emails/reset-password-request";
-import { sendEmail } from "@/app/lib/api/email/send-email";
+import { VerificationError } from "@/lib/api/errors";
+import { createDbClient } from "@/lib/db/client";
+import { renderPasswordResetRequestEmail } from "@/components/emails/reset-password-request";
+import { sendEmail } from "@/lib/api/email/send-email";
 import { z } from "zod";
 
 const reqSchema = z.object({

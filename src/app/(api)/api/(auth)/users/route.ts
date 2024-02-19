@@ -3,19 +3,19 @@ import {
     checkUsernameExists,
     createUser,
     findUserById,
-} from "@/app/lib/db/actions";
-import { credentialsSchema, usernameSchema } from "@/app/lib/validations";
+} from "@/lib/db/actions";
+import { credentialsSchema, usernameSchema } from "@/lib/validations/auth";
 import {
     getBody,
     handleError,
     handleResponse,
     parseBody,
-} from "@/app/lib/api/utils";
+} from "@/lib/api/utils";
 
-import { APIError } from "@/app/lib/api/errors";
+import { APIError } from "@/lib/api/errors";
 import { NextRequest } from "next/server";
-import { createDbClient } from "@/app/lib/db/client";
-import { hash } from "@/app/lib/api/auth/utils";
+import { createDbClient } from "@/lib/db/client";
+import { hash } from "@/lib/api/auth/utils";
 import { z } from "zod";
 
 const reqSchema = z.object({

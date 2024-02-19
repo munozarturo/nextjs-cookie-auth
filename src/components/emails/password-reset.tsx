@@ -12,7 +12,7 @@ import {
 } from "@react-email/components";
 
 import React from "react";
-import { renderEmail } from "@/app/lib/api/email/render-email";
+import { renderEmail } from "@/lib/api/email/render-email";
 
 interface PasswordResetEmailProps {
     userName: string;
