@@ -32,4 +32,18 @@ const credentialsSchema = z.object({
     password: passwordSchema,
 });
 
-export { usernameSchema, emailSchema, passwordSchema, credentialsSchema };
+const verificationCodeRegex = new RegExp("^[0-9]{6}$");
+
+const verificationCodeSchema = z
+    .string()
+    .max(6)
+    .min(6)
+    .refine((val) => verificationCodeRegex.test(val));
+
+export {
+    usernameSchema,
+    emailSchema,
+    passwordSchema,
+    credentialsSchema,
+    verificationCodeSchema,
+};
