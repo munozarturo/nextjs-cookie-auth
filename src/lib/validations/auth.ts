@@ -36,9 +36,11 @@ const verificationCodeRegex = new RegExp("^[0-9]{6}$");
 
 const verificationCodeSchema = z
     .string()
-    .max(6)
-    .min(6)
-    .refine((val) => verificationCodeRegex.test(val));
+    .max(6, { message: "Code must be at least 6 characters." })
+    .min(6, { message: "Code must be at most 6 characters." })
+    .refine((val) => verificationCodeRegex.test(val), {
+        message: "Code only contains numbers.",
+    });
 
 export {
     usernameSchema,

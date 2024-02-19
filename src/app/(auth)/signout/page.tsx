@@ -1,7 +1,7 @@
 export default function SignOut() {
     return (
-        <div>
-            <h1>Hello from sign-in</h1>
+        <div className="w-fit h-fit flex flex-col items-center gap-4">
+            <h1 className="text-xl font-bold">Sign Out</h1>
         </div>
     );
 }
