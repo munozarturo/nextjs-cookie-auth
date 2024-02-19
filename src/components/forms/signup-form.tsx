@@ -1,3 +1,5 @@
+"use client";
+
 import {
     Form,
     FormControl,
@@ -6,18 +8,26 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { emailSchema, passwordSchema } from "@/lib/validations/auth";
+import {
+    emailSchema,
+    passwordSchema,
+    usernameSchema,
+} from "@/lib/validations/auth";
 
 import { Button } from "../ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const formSchema = z.object({ email: emailSchema, password: passwordSchema });
+const formSchema = z.object({
+    username: usernameSchema,
+    email: emailSchema,
+    password: passwordSchema,
+});
 
 type Inputs = z.infer<typeof formSchema>;
 
@@ -29,6 +39,7 @@ export function SignUpForm() {
     const form = useForm<Inputs>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            username: "",
             email: "",
             password: "",
         },
@@ -65,13 +76,26 @@ export function SignUpForm() {
             >
                 <FormField
                     control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Username</FormLabel>
+                            <FormControl>
+                                <Input placeholder="username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
                     name="email"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="rodneymullen180@gmail.com"
+                                    placeholder="someone@example.com"
                                     {...field}
                                 />
                             </FormControl>
