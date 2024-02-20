@@ -1,4 +1,8 @@
-import { createPasswordReset, findUserById } from "@/lib/db/actions";
+import {
+    createPasswordReset,
+    findUserByEmail,
+    findUserById,
+} from "@/lib/db/actions";
 import { createVerificationToken, hash } from "@/lib/api/auth/utils";
 import {
     getBody,
@@ -10,12 +14,13 @@ import {
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/lib/api/errors";
 import { createDbClient } from "@/lib/db/client";
+import { emailSchema } from "@/lib/validations/auth";
 import { renderPasswordResetRequestEmail } from "@/components/emails/reset-password-request";
 import { sendEmail } from "@/lib/api/email/send-email";
 import { z } from "zod";
 
 const reqSchema = z.object({
-    userId: z.string(),
+    email: emailSchema,
 });
 
 export async function POST(req: NextRequest) {
@@ -24,12 +29,12 @@ export async function POST(req: NextRequest) {
         const input = parseBody(body, reqSchema);
         const dbClient = createDbClient();
 
-        const { userId } = input;
+        const { email } = input;
 
         const token = createVerificationToken(64);
         const tokenHash = await hash(token);
 
-        const user = await findUserById(dbClient, { userId });
+        const user = await findUserByEmail(dbClient, { email });
 
         if (!user.emailVerified) {
             throw new VerificationError(
@@ -39,7 +44,7 @@ export async function POST(req: NextRequest) {
         }
 
         const resetRequestId = await createPasswordReset(dbClient, {
-            userId: userId,
+            userId: user.userId,
             tokenHash: tokenHash,
         });
 
