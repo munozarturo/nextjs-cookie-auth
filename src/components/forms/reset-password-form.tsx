@@ -8,12 +8,11 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { emailSchema, passwordSchema } from "@/lib/validations/auth";
 
 import { Button } from "../ui/button";
-import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
+import { passwordSchema } from "@/lib/validations/auth";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -30,7 +29,6 @@ export function ResetPasswordForm() {
     const router = useRouter();
     const [isPending, startTransition] = React.useTransition();
 
-    // react-hook-form
     const form = useForm<Inputs>({
         resolver: zodResolver(formSchema),
         defaultValues: {

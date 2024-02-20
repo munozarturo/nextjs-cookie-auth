@@ -3,6 +3,9 @@
 ## .env
 
 ```.env
+# url
+NEXT_PUBLIC_BASE_URL=""
+
 # authentication
 NEXT_PUBLIC_AUTH_SECRET="auth secret"
 
