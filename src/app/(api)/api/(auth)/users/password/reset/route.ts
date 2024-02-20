@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
         const { html: htmlBody, text: textBody } =
             renderPasswordResetRequestEmail({
-                userName: user.username + token,
+                userName: user.username,
                 resetUrl: `${URL}/reset-password?token=${token}`,
                 websiteUrl: URL,
             });
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
         return handleResponse({
             message: "Created password reset request.",
-            data: { resetRequestId },
+            data: null,
             status: 200,
         });
     } catch (e: any) {
