@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         const { html: htmlBody, text: textBody } =
             renderPasswordResetRequestEmail({
                 userName: user.username + token,
-                resetUrl: URL,
+                resetUrl: `${URL}/reset-password?token=${token}`,
                 websiteUrl: URL,
             });
 
