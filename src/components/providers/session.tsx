@@ -1,8 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+"use client";
+
+import React, { useContext, useEffect } from "react";
 
 import { API } from "@/lib/api/actions";
+
+import Cookie from "js-cookie";
+import SessionContext from "./session-context";
 import { User } from "@/lib/db/actions";
-import { cookies } from "next/headers";
 
 interface ClientSession {
     user: User;
@@ -11,8 +15,6 @@ interface ClientSession {
     createdAt: Date;
     expiresAt: Date;
 }
-
-const SessionContext = createContext<ClientSession | null>(null);
 
 interface SessionProviderProps {
     children: React.ReactNode;
@@ -23,7 +25,7 @@ const SessionProvider: React.FC<SessionProviderProps> = ({
 }: SessionProviderProps) => {
     const [session, setSession] = React.useState<ClientSession | null>(null);
 
-    const sessionId = cookies().get("user-session")?.value;
+    const sessionId = Cookie.get("user-session");
 
     useEffect(() => {
         const fetchSession = async () => {

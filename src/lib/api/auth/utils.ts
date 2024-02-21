@@ -1,4 +1,4 @@
-import { Session, User, findSessionById, findUserById } from "../../db/actions";
+import { DB, Session, User } from "../../db/actions";
 import { hash as argon2, verify as argon2Verify } from "argon2";
 
 import { DatabaseClient } from "../../db/client";
@@ -40,7 +40,7 @@ function createSessionCookie(session: Session): {
     const cookieName = "user-session";
     const cookieValue = session.sessionId;
     const cookieAttributes = {
-        httpOnly: true,
+        httpOnly: false,
         secure: true,
         sameSite: "Strict",
         expires: session.expiresAt,
@@ -76,8 +76,8 @@ async function getSession(
 
     if (!sessionId) return null;
 
-    const session = await findSessionById(client, { sessionId });
-    const user = await findUserById(client, { userId: session.userId });
+    const session = await DB.findSessionById(client, { sessionId });
+    const user = await DB.findUserById(client, { userId: session.userId });
 
     return { ...session, user };
 }

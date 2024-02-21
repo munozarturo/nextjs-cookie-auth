@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
+import { Icons } from "../icons";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { verificationCodeSchema } from "@/lib/validations/auth";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +26,6 @@ const formSchema = z.object({
 type Inputs = z.infer<typeof formSchema>;
 
 export function VerifyEmailForm() {
-    const router = useRouter();
     const [isPending, startTransition] = React.useTransition();
 
     // react-hook-form
@@ -37,29 +36,7 @@ export function VerifyEmailForm() {
         },
     });
 
-    function onSubmit(data: Inputs) {
-        // startTransition(async () => {
-        //     try {
-        //         const completeSignUp =
-        //             await signUp.attemptEmailAddressVerification({
-        //                 code: data.code,
-        //             });
-        //         if (completeSignUp.status !== "complete") {
-        //             /*  investigate the response, to see if there was an error
-        //      or if the user needs to complete more steps.*/
-        //             console.log(JSON.stringify(completeSignUp, null, 2));
-        //         }
-        //         if (completeSignUp.status === "complete") {
-        //             await setActive({
-        //                 session: completeSignUp.createdSessionId,
-        //             });
-        //             router.push(`${window.location.origin}/`);
-        //         }
-        //     } catch (err) {
-        //         catchClerkError(err);
-        //     }
-        // });
-    }
+    function onSubmit(data: Inputs) {}
 
     return (
         <Form {...form}>
@@ -85,12 +62,12 @@ export function VerifyEmailForm() {
                     )}
                 />
                 <Button disabled={isPending}>
-                    {/* {isPending && (
+                    {isPending && (
                         <Icons.spinner
                             className="mr-2 size-4 animate-spin"
                             aria-hidden="true"
                         />
-                    )} */}
+                    )}
                     Verify email
                     <span className="sr-only">Verify email</span>
                 </Button>

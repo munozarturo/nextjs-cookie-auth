@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -27,7 +26,6 @@ const formSchema = z.object({
 type Inputs = z.infer<typeof formSchema>;
 
 export function SignInForm() {
-    const router = useRouter();
     const [isPending, startTransition] = React.useTransition();
 
     // react-hook-form
@@ -40,24 +38,7 @@ export function SignInForm() {
     });
 
     function onSubmit(data: Inputs) {
-        startTransition(async () => {
-            // try {
-            //     await signUp.create({
-            //         emailAddress: data.email,
-            //         password: data.password,
-            //     });
-            //     // Send email verification code
-            //     await signUp.prepareEmailAddressVerification({
-            //         strategy: "email_code",
-            //     });
-            //     router.push("/signup/verify-email");
-            //     toast.message("Check your email", {
-            //         description: "We sent you a 6-digit verification code.",
-            //     });
-            // } catch (err) {
-            //     catchClerkError(err);
-            // }
-        });
+        startTransition(async () => {});
     }
 
     return (
