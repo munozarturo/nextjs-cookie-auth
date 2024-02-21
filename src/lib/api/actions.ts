@@ -68,4 +68,12 @@ async function verifyEmail(verificationId: string, token: string) {
     return res;
 }
 
-export const API = {};
+export const API = {
+    signIn,
+    signOut,
+    signUp,
+    requestEmailVerification,
+    verifyEmail,
+    requestPasswordReset,
+    resetPassword,
+};
