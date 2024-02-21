@@ -12,19 +12,25 @@ const usernameSchema = z
 
 const emailSchema = z.string().email();
 
-const passwordRegex = new RegExp(
-    "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,64}$"
-);
-
 const passwordSchema = z
     .string()
     .max(64, {
         message: "Password must be at most 64 characters long.",
     })
-    .min(8, { message: "Password must be at least 8 characters long." })
-    .refine((val) => passwordRegex.test(val), {
-        message:
-            "Password must include at least one uppercase and one lowercase letter, at least one number, and at least one special character.",
+    .min(8, {
+        message: "Password must be at least 8 characters long.",
+    })
+    .refine((val) => /[a-z]/.test(val), {
+        message: "Password must include at least one lowercase letter.",
+    })
+    .refine((val) => /[A-Z]/.test(val), {
+        message: "Password must include at least one uppercase letter.",
+    })
+    .refine((val) => /[0-9]/.test(val), {
+        message: "Password must include at least one number.",
+    })
+    .refine((val) => /[\^$*.[\]{}()?"!@#%&/,><':;|_~`\\]/.test(val), {
+        message: "Password must include at least one special character.",
     });
 
 const credentialsSchema = z.object({

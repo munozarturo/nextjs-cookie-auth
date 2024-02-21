@@ -9,11 +9,13 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 
+import { API } from "@/lib/api/actions";
 import { Button } from "../ui/button";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
 import { passwordSchema } from "@/lib/validations/auth";
 import { useForm } from "react-hook-form";
+import { useMutation } from "react-query";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,9 +27,14 @@ const formSchema = z.object({
 
 type Inputs = z.infer<typeof formSchema>;
 
-export function ResetPasswordForm({ token }: { token: string }) {
+export function ResetPasswordForm({
+    token,
+    reset,
+}: {
+    token: string;
+    reset: string;
+}) {
     const router = useRouter();
-    const [isPending, startTransition] = React.useTransition();
 
     const form = useForm<Inputs>({
         resolver: zodResolver(formSchema),
@@ -37,24 +44,14 @@ export function ResetPasswordForm({ token }: { token: string }) {
         },
     });
 
-    function onSubmit(data: Inputs) {
-        startTransition(async () => {
-            // try {
-            //     await signUp.create({
-            //         emailAddress: data.email,
-            //         password: data.password,
-            //     });
-            //     // Send email verification code
-            //     await signUp.prepareEmailAddressVerification({
-            //         strategy: "email_code",
-            //     });
-            //     router.push("/signup/verify-email");
-            //     toast.message("Check your email", {
-            //         description: "We sent you a 6-digit verification code.",
-            //     });
-            // } catch (err) {
-            //     catchClerkError(err);
-            // }
+    const mutation = useMutation(
+        async ({ newPassword }: { newPassword: string }) =>
+            await API.resetPassword(reset, token, newPassword)
+    );
+
+    async function onSubmit(data: Inputs) {
+        const result = await mutation.mutateAsync({
+            newPassword: data.password,
         });
     }
 
@@ -98,7 +95,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
                         </FormItem>
                     )}
                 />
-                <Button disabled={isPending}>
+                <Button disabled={mutation.isLoading}>
                     {/* {isPending && (
                         <Icons.spinner
                             className="mr-2 size-4 animate-spin"
@@ -108,6 +105,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
                     Reset Password
                     <span className="sr-only">Reset password</span>
                 </Button>
+                {!!mutation.error && <span>Error</span>}
             </form>
         </Form>
     );
