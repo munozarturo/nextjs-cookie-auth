@@ -7,39 +7,78 @@ import {
     usernameSchema,
 } from "@/lib/validations/auth";
 
+import { APIError } from "./errors";
 import axiosInstance from "@/lib/api/axios-instance";
 import { z } from "zod";
 
 async function signIn(credentials: z.infer<typeof credentialsSchema>) {
-    const res = await axiosInstance.post("/api/signin", { credentials });
-
-    return res;
+    await axiosInstance.post("/api/signin", { credentials }).then(
+        (response) => {
+            return response;
+        },
+        (error) => {
+            throw new APIError(
+                error.response.data.message,
+                error.response.status
+            );
+        }
+    );
 }
 
 async function signOut() {
-    const res = await axiosInstance.post("/api/signout");
-
-    return res;
+    await axiosInstance.post("/api/signout").then(
+        (response) => {
+            return response;
+        },
+        (error) => {
+            throw new APIError(
+                error.response.data.message,
+                error.response.status
+            );
+        }
+    );
 }
 
-async function signUp(
-    username: z.infer<typeof usernameSchema>,
-    credentials: z.infer<typeof credentialsSchema>
-) {
-    const res = await axiosInstance.post("/api/signup", {
-        username,
-        credentials,
-    });
+async function signUp(variables: {
+    username: z.infer<typeof usernameSchema>;
+    credentials: z.infer<typeof credentialsSchema>;
+}) {
+    const { username, credentials } = variables;
 
-    return res;
+    await axiosInstance
+        .post("/api/signup", {
+            username,
+            credentials,
+        })
+        .then(
+            (response) => {
+                return response;
+            },
+            (error) => {
+                throw new APIError(
+                    error.response.data.message,
+                    error.response.status
+                );
+            }
+        );
 }
 
 async function requestPasswordReset(email: z.infer<typeof emailSchema>) {
-    const res = await axiosInstance.post("/api/users/password/reset", {
-        email,
-    });
-
-    return res;
+    await axiosInstance
+        .post("/api/users/password/reset", {
+            email,
+        })
+        .then(
+            (response) => {
+                return response;
+            },
+            (error) => {
+                throw new APIError(
+                    error.response.data.message,
+                    error.response.status
+                );
+            }
+        );
 }
 
 async function resetPassword(
@@ -47,27 +86,49 @@ async function resetPassword(
     token: string,
     newPassword: z.infer<typeof passwordSchema>
 ) {
-    const res = await axiosInstance.post(
-        `/api/users/password/reset/${resetId}`,
-        { token, newPassword }
-    );
-
-    return res;
+    await axiosInstance
+        .post(`/api/users/password/reset/${resetId}`, { token, newPassword })
+        .then(
+            (response) => {
+                return response;
+            },
+            (error) => {
+                throw new APIError(
+                    error.response.data.message,
+                    error.response.status
+                );
+            }
+        );
 }
 
 async function requestEmailVerification(userId: string) {
-    const res = await axiosInstance.post("/api/users/verification", { userId });
-
-    return res;
+    await axiosInstance.post("/api/users/verification", { userId }).then(
+        (response) => {
+            return response;
+        },
+        (error) => {
+            throw new APIError(
+                error.response.data.message,
+                error.response.status
+            );
+        }
+    );
 }
 
 async function verifyEmail(verificationId: string, token: string) {
-    const res = await axiosInstance.post(
-        `/api/users/verify/${verificationId}`,
-        { token }
-    );
-
-    return res;
+    await axiosInstance
+        .post(`/api/users/verify/${verificationId}`, { token })
+        .then(
+            (response) => {
+                return response;
+            },
+            (error) => {
+                throw new APIError(
+                    error.response.data.message,
+                    error.response.status
+                );
+            }
+        );
 }
 
 export const API = {

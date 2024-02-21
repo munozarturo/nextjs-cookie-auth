@@ -14,11 +14,16 @@ import {
     usernameSchema,
 } from "@/lib/validations/auth";
 
-import { Button } from "../ui/button";
+import { API } from "@/lib/api/actions";
+import { APIError } from "@/lib/api/errors";
+import { Button } from "@/components/ui/button";
+import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
+import { error } from "console";
 import { useForm } from "react-hook-form";
+import { useMutation } from "react-query";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,10 +37,9 @@ const formSchema = z.object({
 type Inputs = z.infer<typeof formSchema>;
 
 export function SignUpForm() {
+    const [errorMessage, setErrorMessage] = React.useState<string>("");
     const router = useRouter();
-    const [isPending, startTransition] = React.useTransition();
 
-    // react-hook-form
     const form = useForm<Inputs>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -45,25 +49,27 @@ export function SignUpForm() {
         },
     });
 
-    function onSubmit(data: Inputs) {
-        startTransition(async () => {
-            // try {
-            //     await signUp.create({
-            //         emailAddress: data.email,
-            //         password: data.password,
-            //     });
-            //     // Send email verification code
-            //     await signUp.prepareEmailAddressVerification({
-            //         strategy: "email_code",
-            //     });
-            //     router.push("/signup/verify-email");
-            //     toast.message("Check your email", {
-            //         description: "We sent you a 6-digit verification code.",
-            //     });
-            // } catch (err) {
-            //     catchClerkError(err);
-            // }
-        });
+    const mutation = useMutation(API.signUp, { retry: false });
+
+    async function onSubmit(data: Inputs) {
+        mutation.mutate(
+            {
+                username: data.username,
+                credentials: { email: data.email, password: data.password },
+            },
+            {
+                onSuccess: () => {
+                    router.push("/signup/verify");
+                },
+                onError: (e: any) => {
+                    if (e instanceof APIError) {
+                        setErrorMessage(e.message);
+                    } else {
+                        setErrorMessage("Unknown error.");
+                    }
+                },
+            }
+        );
     }
 
     return (
@@ -119,18 +125,19 @@ export function SignUpForm() {
                         </FormItem>
                     )}
                 />
-                <Button disabled={isPending}>
-                    {/* {isPending && (
+                <Button disabled={mutation.isLoading}>
+                    {mutation.isLoading && (
                         <Icons.spinner
                             className="mr-2 size-4 animate-spin"
                             aria-hidden="true"
                         />
-                    )} */}
+                    )}
                     Continue
                     <span className="sr-only">
                         Continue to email verification page
                     </span>
                 </Button>
+                {mutation.isError && <span>{errorMessage}</span>}
             </form>
         </Form>
     );
