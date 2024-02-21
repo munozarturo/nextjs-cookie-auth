@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 
 import { Inter } from "next/font/google";
 import React from "react";
+import { SessionProvider } from "@/components/providers/session";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,9 +19,11 @@ export default function RootLayout({
 
     return (
         <html className={inter.className} lang="en">
-            <QueryClientProvider client={client}>
-                {children}
-            </QueryClientProvider>
+            <SessionProvider>
+                <QueryClientProvider client={client}>
+                    {children}
+                </QueryClientProvider>
+            </SessionProvider>
         </html>
     );
 }
