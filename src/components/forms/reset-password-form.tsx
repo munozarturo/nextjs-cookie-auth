@@ -12,8 +12,10 @@ import {
 import { Button } from "../ui/button";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
+import axiosInstance from "@/lib/api/axios-instance";
 import { passwordSchema } from "@/lib/validations/auth";
 import { useForm } from "react-hook-form";
+import { useMutation } from "react-query";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +27,7 @@ const formSchema = z.object({
 
 type Inputs = z.infer<typeof formSchema>;
 
-export function ResetPasswordForm() {
+export function ResetPasswordForm({ token }: { token: string }) {
     const router = useRouter();
     const [isPending, startTransition] = React.useTransition();
 
