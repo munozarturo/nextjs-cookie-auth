@@ -46,7 +46,7 @@ export function ResetPasswordForm({
 
     const mutation = useMutation(
         async ({ newPassword }: { newPassword: string }) =>
-            await API.resetPassword(reset, token, newPassword)
+            await API.resetPassword({ resetId: reset, token, newPassword })
     );
 
     async function onSubmit(data: Inputs) {

@@ -21,7 +21,6 @@ import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import React from "react";
-import { error } from "console";
 import { useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 import { useRouter } from "next/navigation";
@@ -49,27 +48,30 @@ export function SignUpForm() {
         },
     });
 
-    const mutation = useMutation(API.signUp, { retry: false });
+    const mutation = useMutation(
+        async (data: Inputs) => {
+            const { username, email, password } = data;
+            const credentials = { email, password };
+
+            await API.signUp({ username, credentials });
+            await API.signIn({ credentials });
+        },
+        { retry: false }
+    );
 
     async function onSubmit(data: Inputs) {
-        mutation.mutate(
-            {
-                username: data.username,
-                credentials: { email: data.email, password: data.password },
+        mutation.mutate(data, {
+            onSuccess: () => {
+                router.push("/signup/verify");
             },
-            {
-                onSuccess: () => {
-                    router.push("/signup/verify");
-                },
-                onError: (e: any) => {
-                    if (e instanceof APIError) {
-                        setErrorMessage(e.message);
-                    } else {
-                        setErrorMessage("Unknown error.");
-                    }
-                },
-            }
-        );
+            onError: (e: any) => {
+                if (e instanceof APIError) {
+                    setErrorMessage(e.message);
+                } else {
+                    setErrorMessage("Unknown error.");
+                }
+            },
+        });
     }
 
     return (

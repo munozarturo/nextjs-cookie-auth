@@ -11,7 +11,11 @@ import { APIError } from "./errors";
 import axiosInstance from "@/lib/api/axios-instance";
 import { z } from "zod";
 
-async function signIn(credentials: z.infer<typeof credentialsSchema>) {
+async function signIn(variables: {
+    credentials: z.infer<typeof credentialsSchema>;
+}) {
+    const { credentials } = variables;
+
     await axiosInstance.post("/api/signin", { credentials }).then(
         (response) => {
             return response;
@@ -63,7 +67,11 @@ async function signUp(variables: {
         );
 }
 
-async function requestPasswordReset(email: z.infer<typeof emailSchema>) {
+async function requestPasswordReset(variables: {
+    email: z.infer<typeof emailSchema>;
+}) {
+    const { email } = variables;
+
     await axiosInstance
         .post("/api/users/password/reset", {
             email,
@@ -81,11 +89,13 @@ async function requestPasswordReset(email: z.infer<typeof emailSchema>) {
         );
 }
 
-async function resetPassword(
-    resetId: string,
-    token: string,
-    newPassword: z.infer<typeof passwordSchema>
-) {
+async function resetPassword(variables: {
+    resetId: string;
+    token: string;
+    newPassword: z.infer<typeof passwordSchema>;
+}) {
+    const { resetId, token, newPassword } = variables;
+
     await axiosInstance
         .post(`/api/users/password/reset/${resetId}`, { token, newPassword })
         .then(
@@ -101,7 +111,9 @@ async function resetPassword(
         );
 }
 
-async function requestEmailVerification(userId: string) {
+async function requestEmailVerification(variables: { userId: string }) {
+    const { userId } = variables;
+
     await axiosInstance.post("/api/users/verification", { userId }).then(
         (response) => {
             return response;
@@ -115,7 +127,12 @@ async function requestEmailVerification(userId: string) {
     );
 }
 
-async function verifyEmail(verificationId: string, token: string) {
+async function verifyEmail(variables: {
+    verificationId: string;
+    token: string;
+}) {
+    const { verificationId, token } = variables;
+
     await axiosInstance
         .post(`/api/users/verify/${verificationId}`, { token })
         .then(
