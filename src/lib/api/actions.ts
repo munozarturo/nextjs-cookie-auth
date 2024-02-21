@@ -1,5 +1,6 @@
 "use client";
 
+import { Session, User } from "../db/actions";
 import {
     credentialsSchema,
     emailSchema,
@@ -148,6 +149,40 @@ async function verifyEmail(variables: {
         );
 }
 
+interface ClientSession {
+    user: User;
+    sessionId: string;
+    userId: string;
+    createdAt: Date;
+    expiresAt: Date;
+}
+
+async function fetchSession(variables: {
+    sessionId: string;
+}): Promise<ClientSession> {
+    const { sessionId } = variables;
+
+    let res;
+    await axiosInstance.get(`/api/users/sessions/${sessionId}`).then(
+        (response) => {
+            res = response;
+        },
+        (error) => {
+            throw new APIError(
+                error.response.data.message,
+                error.response.status
+            );
+        }
+    );
+
+    const { session, user } = res as unknown as {
+        user: User;
+        session: Session;
+    };
+
+    return { ...session, user };
+}
+
 export const API = {
     signIn,
     signOut,
@@ -156,4 +191,5 @@ export const API = {
     verifyEmail,
     requestPasswordReset,
     resetPassword,
+    fetchSession,
 };
