@@ -1,4 +1,3 @@
-import { createEmailVerification, findUserById } from "@/lib/db/actions";
 import { createVerificationCode, hash } from "@/lib/api/auth/utils";
 import {
     getBody,
@@ -7,6 +6,7 @@ import {
     parseBody,
 } from "@/lib/api/utils";
 
+import { DB } from "@/lib/db/actions";
 import { NextRequest } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { renderVerificationCodeEmail } from "@/components/emails/verification-code";
@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
         const verificationToken = createVerificationCode(6);
         const tokenHash = await hash(verificationToken);
 
-        const user = await findUserById(dbClient, { userId });
+        const user = await DB.findUserById(dbClient, { userId });
 
-        const emailVerificationId = await createEmailVerification(dbClient, {
+        const emailVerificationId = await DB.createEmailVerification(dbClient, {
             userId,
             tokenHash,
         });

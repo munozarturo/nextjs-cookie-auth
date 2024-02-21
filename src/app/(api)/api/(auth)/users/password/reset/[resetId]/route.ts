@@ -1,9 +1,4 @@
 import {
-    findUserById,
-    getPasswordReset,
-    resetPassword,
-} from "@/lib/db/actions";
-import {
     getBody,
     handleError,
     handleResponse,
@@ -12,6 +7,7 @@ import {
 } from "@/lib/api/utils";
 import { hash, verifyHash } from "@/lib/api/auth/utils";
 
+import { DB } from "@/lib/db/actions";
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/lib/api/errors";
 import { createDbClient } from "@/lib/db/client";
@@ -43,11 +39,11 @@ export async function POST(req: NextRequest, context: { params: Params }) {
 
         const newPasswordHash = await hash(newPassword);
 
-        const passwordReset = await getPasswordReset(dbClient, {
+        const passwordReset = await DB.getPasswordReset(dbClient, {
             passwordResetId,
         });
 
-        const user = await findUserById(dbClient, {
+        const user = await DB.findUserById(dbClient, {
             userId: passwordReset.userId,
         });
 
@@ -74,7 +70,7 @@ export async function POST(req: NextRequest, context: { params: Params }) {
             );
         }
 
-        await resetPassword(dbClient, {
+        await DB.resetPassword(dbClient, {
             passwordResetId,
             newPasswordHash,
         });

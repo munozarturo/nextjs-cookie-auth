@@ -1,8 +1,3 @@
-import {
-    createPasswordReset,
-    findUserByEmail,
-    findUserById,
-} from "@/lib/db/actions";
 import { createVerificationToken, hash } from "@/lib/api/auth/utils";
 import {
     getBody,
@@ -11,6 +6,7 @@ import {
     parseBody,
 } from "@/lib/api/utils";
 
+import { DB } from "@/lib/db/actions";
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/lib/api/errors";
 import { createDbClient } from "@/lib/db/client";
@@ -34,7 +30,7 @@ export async function POST(req: NextRequest) {
         const token = createVerificationToken(64);
         const tokenHash = await hash(token);
 
-        const user = await findUserByEmail(dbClient, { email });
+        const user = await DB.findUserByEmail(dbClient, { email });
 
         if (!user.emailVerified) {
             throw new VerificationError(
@@ -43,7 +39,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const resetRequestId = await createPasswordReset(dbClient, {
+        const resetRequestId = await DB.createPasswordReset(dbClient, {
             userId: user.userId,
             tokenHash: tokenHash,
         });

@@ -5,8 +5,8 @@ import {
     parseBody,
     parseContext,
 } from "@/lib/api/utils";
-import { getEmailVerification, verifyEmail } from "@/lib/db/actions";
 
+import { DB } from "@/lib/db/actions";
 import { NextRequest } from "next/server";
 import { VerificationError } from "@/lib/api/errors";
 import { createDbClient } from "@/lib/db/client";
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, context: { params: Params }) {
 
         const { verificationId } = params;
 
-        const emailVerification = await getEmailVerification(dbClient, {
+        const emailVerification = await DB.getEmailVerification(dbClient, {
             verificationId,
         });
 
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest, context: { params: Params }) {
             );
         }
 
-        await verifyEmail(dbClient, { verificationId });
+        await DB.verifyEmail(dbClient, { verificationId });
 
         return handleResponse({ message: "Verified.", data: {}, status: 200 });
     } catch (e: any) {

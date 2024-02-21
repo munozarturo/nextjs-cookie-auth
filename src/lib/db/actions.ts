@@ -1,5 +1,5 @@
-import { DatabaseError } from "../api/errors";
 import { DatabaseClient } from "./client";
+import { DatabaseError } from "../api/errors";
 
 interface User {
     userId: string;
@@ -314,22 +314,20 @@ async function deleteSessionById(
     }
 }
 
-export {
-    type User,
+export type { User, EmailVerification, PasswordReset, Session };
+
+export const DB = {
     checkUsernameExists,
     checkUserEmailExists,
     createUser,
     findUserById,
     findUserByEmail,
-    type EmailVerification,
     createEmailVerification,
     getEmailVerification,
     verifyEmail,
-    type PasswordReset,
     createPasswordReset,
     getPasswordReset,
     resetPassword,
-    type Session,
     createSession,
     findSessionById,
     deleteSessionById,

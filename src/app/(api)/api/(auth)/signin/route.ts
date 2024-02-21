@@ -1,8 +1,3 @@
-import {
-    createSession,
-    findSessionById,
-    findUserByEmail,
-} from "@/lib/db/actions";
 import { createSessionCookie, verifyHash } from "@/lib/api/auth/utils";
 import {
     getBody,
@@ -12,6 +7,7 @@ import {
 } from "@/lib/api/utils";
 
 import { AuthError } from "@/lib/api/errors";
+import { DB } from "@/lib/db/actions";
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { createDbClient } from "@/lib/db/client";
@@ -30,7 +26,7 @@ export async function POST(req: NextRequest) {
 
         const { email, password } = input.credentials;
 
-        const user = await findUserByEmail(dbClient, {
+        const user = await DB.findUserByEmail(dbClient, {
             email,
         });
 
@@ -39,10 +35,10 @@ export async function POST(req: NextRequest) {
         if (!passwordMatch)
             throw new AuthError("Invalid email or password.", 400);
 
-        const createdSessionId = await createSession(dbClient, {
+        const createdSessionId = await DB.createSession(dbClient, {
             userId: user.userId,
         });
-        const session = await findSessionById(dbClient, {
+        const session = await DB.findSessionById(dbClient, {
             sessionId: createdSessionId,
         });
 
