@@ -3,9 +3,9 @@ import {
     emailSchema,
     passwordSchema,
     usernameSchema,
-} from "../validations/auth";
+} from "@/lib/validations/auth";
 
-import axiosInstance from "./axios-instance";
+import axiosInstance from "@/lib/api/axios-instance";
 import { z } from "zod";
 
 async function signIn(credentials: z.infer<typeof credentialsSchema>) {
